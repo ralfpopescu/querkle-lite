@@ -1,0 +1,55 @@
+{
+  "name": "quervana",
+  "version": "1.0.3",
+  "description": "A low-commitment, dynamic ORM for SQL Server",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prepare-test-db": "node src/test-setup/setup.js",
+    "test": "eslint --fix . && ./scripts/test.sh",
+    "test-cmd": "eslint . && madge -c . && jest",
+    "build": "rm -rf ./dist/* && tsc",
+    "type-check": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://carvanadev.visualstudio.com/DefaultCollection/Carvana.VehicleExperience/_git/Quervana"
+  },
+  "keywords": [
+    "ORM",
+    "SQL",
+    "Server",
+    "MSSQL",
+    "batching",
+    "dataloader",
+    "GraphQL",
+    "database",
+    "simple"
+  ],
+  "author": "Ralf Popescu",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "atob": "^2.1.2",
+    "btoa": "^1.2.1",
+    "cryptr": "^6.0.1",
+    "dataloader": "^2.0.0",
+    "dotenv": "^8.2.0",
+    "expect": "25.1.0",
+    "iconv-lite": "^0.5.0",
+    "jest": "^24.9.0",
+    "lodash": "^4.17.15",
+    "md5": "^2.2.1",
+    "mssql": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.4",
+    "@types/mssql": "^6.0.3",
+    "@typescript-eslint/parser": "^3.6.0",
+    "eslint": "6.5.1",
+    "eslint-config-airbnb-base": "14.0.0",
+    "eslint-plugin-import": "2.18.2",
+    "madge": "3.7.0",
+    "ts-jest": "^26.1.1",
+    "typescript": "^3.9.6"
+  }
+}

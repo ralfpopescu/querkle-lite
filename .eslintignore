@@ -1,0 +1,5 @@
+coverage
+mochawesome-report
+node_modules
+swagger-ui
+dist

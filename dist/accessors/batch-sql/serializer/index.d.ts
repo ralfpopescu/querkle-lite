@@ -1,0 +1,32 @@
+import { EntityParams, EntityParamTypes } from '../../execute-sql';
+import { StringKeys, Transform, TransformMultiple } from '../../index';
+import { BatchIdentifier } from '../index';
+export declare type SerializedBatchSql<T, R> = {
+    readonly serialization: string;
+    readonly paramTypes: EntityParamTypes<T>;
+    readonly batchEntity: string;
+    readonly batchParam: StringKeys<T>;
+    readonly transform: Transform<T, R>;
+    readonly transformMultiple: TransformMultiple<T, R>;
+    readonly parameterize?: boolean;
+};
+export declare type DeserializedBatchSql<T, R> = {
+    readonly queryString: string;
+    readonly params: EntityParams<T>;
+    readonly paramString?: string;
+    readonly paramTypes: EntityParamTypes<T>;
+    readonly batchEntity: string;
+    readonly batchParam: StringKeys<T>;
+    readonly addToBatch: BatchIdentifier;
+    readonly parameterize: boolean;
+    readonly hashedQueryString?: string;
+    readonly hashedParamString?: string;
+    readonly multiple?: boolean;
+    readonly transform?: Transform<T, R>;
+    readonly transformMultiple?: TransformMultiple<T, R>;
+};
+export declare const encode: (str: any) => any;
+export declare const decode: (str: any) => any;
+export declare const generateParamSerialization: <T>(params: EntityParams<T>) => string;
+export declare const serializeBatchSql: <T, R>({ queryString, params, paramTypes, addToBatch, batchEntity, batchParam, multiple, transform, transformMultiple, parameterize, }: DeserializedBatchSql<T, R>) => SerializedBatchSql<T, R>;
+export declare const deserializeBatchSql: <T, R>(serializedBatchSql: SerializedBatchSql<T, R>) => DeserializedBatchSql<T, R>;
