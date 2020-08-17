@@ -30,7 +30,6 @@ const organizeByQueryString = <T, R>(deserializedBatchedSqls: ReadonlyArray<Dese
 );
 
 export const organizeBatchedSqls = <T, R>(deserializedBatchedSqls: ReadonlyArray<DeserializedBatchSql<T, R>>): OrganizedBatchedSqls<T> => {
-  console.log('deserializedBatchedSqlsdeserializedBatchedSqls', JSON.stringify(deserializedBatchedSqls))
   const organizedByQueryString = organizeByQueryString(deserializedBatchedSqls);
   const queryStringKeys = Object.keys(organizedByQueryString);
 

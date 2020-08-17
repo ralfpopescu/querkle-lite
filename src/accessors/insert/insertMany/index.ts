@@ -37,7 +37,6 @@ const createValuesString = (inputArray) => {
     strArray.push(arrayToAdd)
   }
   const str = strArray.map(valueArray => `(${valueArray.join(', ')})`).join(', ')
-  console.log(str)
   return str
 }
 
@@ -70,11 +69,7 @@ export const insertMany = ({
   VALUES ${createValuesString(inputArray)}
   RETURNING *`
 
-  console.log('queryStringqueryString', queryString)
-
   const params = inputArray.reduce((acc, curr) => [...acc, ...Object.values(curr)], [])
-
-  console.log('paramsparams', params)
 
   const response = await query({ queryString, params, pool })
 

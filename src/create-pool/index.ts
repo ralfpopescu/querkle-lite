@@ -18,8 +18,6 @@ export const createPool = async (options?: PoolOptions): Promise<PoolType> => {
   }
   const coalescedOptions = { ...envOptions, ...options }
 
-  console.log('coalescedOptions', coalescedOptions)
-
     try {
     const pool = new Pool(coalescedOptions)
     const client = await pool.connect()

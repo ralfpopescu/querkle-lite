@@ -9,7 +9,6 @@ interface ExecuteOrganizedBatchedSqlsOptions<T> {
 export const executeOrganizedBatchedSqls = (dependencies: Dependencies) => async <T>(
   { organizedBatchedSqls }: ExecuteOrganizedBatchedSqlsOptions<T>,
 ) => {
-  console.log('organizedBatchedSqls', JSON.stringify(organizedBatchedSqls))
   const hashedQueryStrings = Object.keys(organizedBatchedSqls);
 
   const promises = hashedQueryStrings.map(hashedQueryString => {
@@ -40,7 +39,7 @@ export const executeOrganizedBatchedSqls = (dependencies: Dependencies) => async
             batchParam,
           });
         }
-        console.log('addToBatches', addToBatches)
+        
         const batchValues = [...addToBatches]
         const batchString = `(${addToBatches.map((_, i) => `$${i + 1 + (params ? params.length : 0)}`).join(', ')})`
 

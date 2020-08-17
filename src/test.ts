@@ -95,7 +95,6 @@ beforeAll(async done => {
   console.log('Created table animal.');
 
   querkle = initQuerkle(pool);
-  console.log('querklequerkle', querkle)
   done();
 
 });
@@ -313,7 +312,6 @@ test('batch sql - get cities animals are in', async () => {
   });
 
   const allAnimals = await querkle.getAll<AnimalRecord>({ entity: 'animal' });
-  console.log('ALLANIMALS', allAnimals)
   const allAnimalsWithZoos = allAnimals.filter(animal => !!animal.zooId);
   const zooIds = [...new Set(allAnimalsWithZoos.map(animal => animal.zooId))];
   const animalsByZooId = zooIds
@@ -321,10 +319,6 @@ test('batch sql - get cities animals are in', async () => {
       [zId]: allAnimalsWithZoos
         .filter(animal => animal.zooId === zId),
     })).reduce((acc, curr) => ({ ...acc, ...curr }));
-
-    console.log('insertedAnimalsIds', insertedAnimalsIds)
-    console.log('insertedAnimalsIds', insertedAnimalsIds[0])
-    console.log('animalsByZooId', animalsByZooId)
 
   const queryString = `
     SELECT animal.id,
@@ -356,8 +350,6 @@ test('batch sql - get cities animals are in', async () => {
       batchParam: 'id',
       multiple: true,
     })]);
-
-    console.log("DARESULTS", results)
 
   matchResults(results[0], animalsByZooId[zooId]);
   matchResults(results[1], animalsByZooId[zooId]);
@@ -433,7 +425,6 @@ test('batch sql - get all animals per city', async () => {
       batchParam: 'city',
       multiple: true,
     })]);
-    console.log("CITTRESULTS", results)
   matchResults(results[0], expected[0]);
   matchResults(results[1], expected[1]);
   matchResults(results[2], expected[2]);
