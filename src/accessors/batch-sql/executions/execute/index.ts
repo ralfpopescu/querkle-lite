@@ -33,11 +33,16 @@ export const executeHasBatch = <T>(dependencies: Dependencies) => async ({
   batchValues,
 }: HasBatchOptions<T>): Promise<BatchResult<T>> => {
   const preparedExecuteSql = executeSql(dependencies);
+  const paramValues = params || []
+
+  console.log('whatisup', queryString, batchValues)
   const result = await preparedExecuteSql<T>({
     queryString,
-    params: [...params, ...batchValues ],
+    params: [...paramValues, ...batchValues ],
     multiple: true,
   });
+
+  console.log('daresultfromexecute', result)
 
   return {
     result,

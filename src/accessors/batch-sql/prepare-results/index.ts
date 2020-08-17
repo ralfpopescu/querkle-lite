@@ -51,7 +51,7 @@ const findResultForBatch = <T, R>({
       result.hashedQueryString === deserializedBatch.hashedQueryString
       && result.paramString === deserializedBatch.hashedParamString
     )).result;
-
+  console.log('resultSetresultSet', resultSet)
   return resultSet.filter(result => `${result[inferedParameterName]}` === `${addToBatch}`);
 };
 
@@ -77,12 +77,16 @@ export const prepareResultsForDataLoader = <T, R>({
       transformMultiple,
     } = deserializedBatch;
 
+    console.log("HOWBOUTHERE", results)
+    console.log('multiplemultiple', multiple, queryString)
+
     const inferedParameterName = inferParameterRename({
       queryString,
       entity: batchEntity,
       param: batchParam,
       translator,
     }) as keyof T;
+    console.log('inferedParameterName', inferedParameterName)
     const foundResult = findResultForBatch({
       deserializedBatch,
       results,

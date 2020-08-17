@@ -297,8 +297,10 @@ const matchResults = <T, R>(result: Array<T>, animalsToMatch: Array<R>) => {
   }
 };
 
+let newZoo;
+
 test('batch sql - get cities animals are in', async () => {
-  const newZoo = await querkle.insert({ entity: 'zoo', input: { city: 'Batchville' } });
+  newZoo = await querkle.insert({ entity: 'zoo', input: { city: 'Batchville' } });
   await querkle.insertMany<AnimalRecord>({
     entity: 'animal',
     inputArray: [
@@ -311,6 +313,7 @@ test('batch sql - get cities animals are in', async () => {
   });
 
   const allAnimals = await querkle.getAll<AnimalRecord>({ entity: 'animal' });
+  console.log('ALLANIMALS', allAnimals)
   const allAnimalsWithZoos = allAnimals.filter(animal => !!animal.zooId);
   const zooIds = [...new Set(allAnimalsWithZoos.map(animal => animal.zooId))];
   const animalsByZooId = zooIds
@@ -318,6 +321,10 @@ test('batch sql - get cities animals are in', async () => {
       [zId]: allAnimalsWithZoos
         .filter(animal => animal.zooId === zId),
     })).reduce((acc, curr) => ({ ...acc, ...curr }));
+
+    console.log('insertedAnimalsIds', insertedAnimalsIds)
+    console.log('insertedAnimalsIds', insertedAnimalsIds[0])
+    console.log('animalsByZooId', animalsByZooId)
 
   const queryString = `
     SELECT animal.id,
@@ -330,36 +337,38 @@ test('batch sql - get cities animals are in', async () => {
   const results = await Promise.all([
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: insertedAnimalsIds[0],
+      addToBatch: zooId,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: insertedAnimalsIds[1],
+      addToBatch: zooId,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: insertedAnimalsIds[2],
+      addToBatch: newZoo.id,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     })]);
 
-  matchResults(results[0], animalsByZooId['0']);
-  matchResults(results[1], animalsByZooId['1']);
-  matchResults(results[2], animalsByZooId['2']);
+    console.log("DARESULTS", results)
+
+  matchResults(results[0], animalsByZooId[zooId]);
+  matchResults(results[1], animalsByZooId[zooId]);
+  matchResults(results[2], animalsByZooId[newZoo.id]);
 });
 
 test('should succeed: get with transform multiple', async () => {
   const response = await querkle.get<AnimalRecord>({
     entity: 'animal',
     where: 'zooId',
-    is: 1,
+    is: zooId,
     multiple: true,
     transformMultiple: rs => rs.reduce((acc, curr) => `${acc}${curr.name}`, ''),
   });
@@ -370,24 +379,24 @@ test('batch sql - get all animals per city', async () => {
   const expected = [
     [
       {
-        id: 6, name: 'Pidgeon', zooId: 2, city: 'Batchville',
+        id: 6, name: 'Pidgeon', zooId: newZoo.id, city: 'Batchville',
       },
       {
-        id: 7, name: 'Hippo', zooId: 2, city: 'Batchville',
+        id: 7, name: 'Hippo', zooId: newZoo.id, city: 'Batchville',
       },
     ],
     [
       {
-        id: 2, name: 'Lion', zooId: 1, city: 'Boston',
+        id: 2, name: 'Lion', zooId, city: 'Boston',
       },
       {
-        id: 3, name: 'Penguin', zooId: 1, city: 'Boston',
+        id: 3, name: 'Penguin', zooId, city: 'Boston',
       },
       {
-        id: 4, name: 'Monkey', zooId: 1, city: 'Boston',
+        id: 4, name: 'Monkey', zooId, city: 'Boston',
       },
       {
-        id: 5, name: 'Turtle', zooId: 1, city: 'Boston',
+        id: 5, name: 'Turtle', zooId, city: 'Boston',
       },
     ],
     [],
@@ -424,6 +433,7 @@ test('batch sql - get all animals per city', async () => {
       batchParam: 'city',
       multiple: true,
     })]);
+    console.log("CITTRESULTS", results)
   matchResults(results[0], expected[0]);
   matchResults(results[1], expected[1]);
   matchResults(results[2], expected[2]);
@@ -573,14 +583,14 @@ test('batch sql - different queries', async () => {
     }),
     querkle.batchSql<ZooRecord>({
       queryString: queryString2,
-      addToBatch: 0,
+      addToBatch: zooId,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString: queryString2,
-      addToBatch: 1,
+      addToBatch: newZoo.id,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
@@ -621,23 +631,23 @@ test('batch sql - different queries with transforms', async () => {
     ],
   ];
   const queryString1 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN [BATCH]`;
 
   const queryString2 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.id IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo ON animal.zoo_id = zoo.id
+    WHERE zoo.id IN [BATCH]`;
 
   const results = await Promise.all([
     querkle.batchSql<ZooRecord>({
@@ -680,14 +690,14 @@ test('batch sql - different queries with transforms', async () => {
 
 test('execute sql', async () => {
   const queryString = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN ($1, $2, $3)`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN ($1, $2, $3)`;
 
   const params = ['Batchville', 'Boston', 'Random'];
   const results = await querkle.executeSql({

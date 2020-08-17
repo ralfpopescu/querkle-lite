@@ -3,10 +3,13 @@ import atob from 'atob';
 
 import { StringKeys, Transform, TransformMultiple } from '../../index';
 import { BatchIdentifier } from '../index';
+import { any } from 'expect';
 
 export type SerializedBatchSql<T, R> = {
   readonly serialization: string;
   readonly batchEntity: string;
+  readonly addToBatch: any;
+  readonly multiple?: boolean;
   readonly batchParam: StringKeys<T>;
   readonly transform: Transform<T, R>;
   readonly transformMultiple: TransformMultiple<T, R>;
@@ -57,7 +60,9 @@ export const serializeBatchSql = <T, R>({
   return {
     serialization,
     batchEntity,
+    addToBatch,
     batchParam,
+    multiple,
     transform,
     transformMultiple,
     parameterize,
@@ -85,11 +90,11 @@ export const deserializeBatchSql = <T, R>(serializedBatchSql: SerializedBatchSql
       .reduce((acc, curr) => ({ ...acc, ...curr }));
   }
 
-  const addToBatch = splitSerializedBatchSql[2] === 'none' ? null : splitSerializedBatchSql[2];
-  const multiple = splitSerializedBatchSql[3] === 'yes';
   const {
     batchEntity,
     batchParam,
+    addToBatch,
+    multiple,
     transform,
     transformMultiple,
     parameterize,
