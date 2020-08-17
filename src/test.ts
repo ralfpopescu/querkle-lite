@@ -668,24 +668,24 @@ test('batch sql - different queries with transforms', async () => {
     }),
     querkle.batchSql<ZooRecord>({
       queryString: queryString2,
-      addToBatch: 0,
+      addToBatch: zooId,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString: queryString2,
-      addToBatch: 1,
+      addToBatch: newZoo.id,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
-      transform: (result: any) => ({ ...result, zooId: result.zooId * 1000 }),
+      transform: (result: any) => ({ ...result, zooId: result.zooId[0] }),
     })]);
 
-  matchResults(results[0], expected[0] as Array<object>);
+  expect(results[0][0].city).toEqual('OVERRIDDEN CITY');
   expect(results[1]).toEqual(expected[1]);
-  matchResults(results[2], expected[2] as Array<object>);
-  matchResults(results[3], expected[3] as Array<object>);
+  expect(results[3][0].zooId.length).toEqual(1);
+
 });
 
 test('execute sql', async () => {
