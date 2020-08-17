@@ -187,14 +187,14 @@ test('should succeed: delete Tiger', async () => {
   expect(response.quantity).toEqual(2);
 });
 
-let insertedAnimals = []
+let insertedAnimalsIds = []
 
 test('should succeed: insert many animals', async () => {
   const response = await querkle.insertMany<AnimalRecord>({
     entity: 'animal',
     inputArray: animals.map(animal => ({ ...animal, zooId })),
   });
-  insertedAnimals = response.map(insertedAnimal => insertedAnimal.id)
+  insertedAnimalsIds = response.map(insertedAnimal => insertedAnimal.id)
   expect(response.length).toBe(3);
 });
 
@@ -205,7 +205,7 @@ test('should succeed: get all animals', async () => {
 });
 
 test('should succeed: get multiple animals', async () => {
-  const response = await querkle.getMultiple<AnimalRecord>({ entity: 'animal', where: 'id', isIn: insertedAnimals });
+  const response = await querkle.getMultiple<AnimalRecord>({ entity: 'animal', where: 'id', isIn: insertedAnimalsIds });
   expect(response.length).toBe(3);
 });
 
@@ -222,16 +222,16 @@ test('should succeed: insert animal even though null value', async () => {
 
 test('should batch gets', async () => {
   const t0 = Date.now();
-  await Promise.all([querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 2' }),
-    querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 3' }),
-    querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 4' })]);
+  await Promise.all([querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[0]}'` }),
+    querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[1]}'` }),
+    querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[2]}'` })]);
   const t1 = Date.now();
   const diffTime1 = Math.abs((t1 - t0) / 1000);
   const t2 = Date.now();
   await Promise.all([
-    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: 2 }),
-    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: 3 }),
-    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: 4 }),
+    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: insertedAnimalsIds[0] }),
+    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: insertedAnimalsIds[1] }),
+    querkle.get<AnimalRecord>({ entity: 'animal', where: 'id', is: insertedAnimalsIds[2] }),
   ]);
   const t3 = Date.now();
   const diffTime2 = Math.abs(t3 - t2) / 1000;
@@ -242,7 +242,7 @@ test('should throw: insert a non-defined entity', async () => {
   try {
     await querkle.insert({ entity: 'critter', input: { zooId, name: 'Squirrel' } });
   } catch (e) {
-    expect(e.message).toMatch('Model for critter is not defined.');
+    expect(e.message).toMatch('critter insertion failed: relation \"critter\" does not exist');
   }
 });
 
@@ -310,7 +310,7 @@ test('batch sql - get cities animals are in', async () => {
     ],
   });
 
-  const allAnimals = await querkle.getAll<AnimalRecord>({ entity: 'animal ' });
+  const allAnimals = await querkle.getAll<AnimalRecord>({ entity: 'animal' });
   const allAnimalsWithZoos = allAnimals.filter(animal => !!animal.zooId);
   const zooIds = [...new Set(allAnimalsWithZoos.map(animal => animal.zooId))];
   const animalsByZooId = zooIds
@@ -330,21 +330,21 @@ test('batch sql - get cities animals are in', async () => {
   const results = await Promise.all([
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: 0,
+      addToBatch: insertedAnimalsIds[0],
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: 1,
+      addToBatch: insertedAnimalsIds[1],
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
     querkle.batchSql<ZooRecord>({
       queryString,
-      addToBatch: 2,
+      addToBatch: insertedAnimalsIds[2],
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
