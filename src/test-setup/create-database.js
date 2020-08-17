@@ -1,11 +1,7 @@
-const sql = require('mssql');
-const config = require('./config');
+const createPool = require('../create-pool');
 
 module.exports = async name => {
-  const dbConfig = config;
-  delete dbConfig.database;
-
-  const pool = await new sql.ConnectionPool(dbConfig);
+  const pool = await createPool();
   await pool.connect();
 
   console.log(`Creating database named ${name}...`);

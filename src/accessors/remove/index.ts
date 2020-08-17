@@ -1,4 +1,4 @@
-import { determineType, format, query } from '../../services';
+import { format, query } from '../../services';
 import { Dependencies, IsValue, StringKeys } from '../index';
 
 type BaseOptions<T> = {
@@ -24,9 +24,7 @@ type Remove = {
 
 export const remove = ({
   pool,
-  model,
   translator,
-  schemaName,
 }: Dependencies): Remove => async <T>({
   entity,
   where,
@@ -45,20 +43,13 @@ export const remove = ({
   }
 
   const queryString = `
-    DELETE FROM ${schemaName}.[${translator.objToRel(entity)}]
-    OUTPUT DELETED.* WHERE ${translator.objToRel(where)} = @is;
+    DELETE FROM "${translator.objToRel(entity)}"
+    WHERE ${translator.objToRel(where)} = $1
+    RETURNING *;
   `;
 
   const response = await query({
-    params: { is },
-    paramTypes: {
-      is: determineType({
-        param: where,
-        value: is,
-        entity,
-        model,
-      }),
-    },
+    params: [is],
     queryString,
     pool,
   });

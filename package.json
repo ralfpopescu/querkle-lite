@@ -1,5 +1,5 @@
 {
-  "name": "quervana",
+  "name": "querkle",
   "version": "1.0.3",
   "description": "A low-commitment, dynamic ORM for SQL Server",
   "main": "dist/index.js",
@@ -9,11 +9,12 @@
     "test": "eslint --fix . && ./scripts/test.sh",
     "test-cmd": "eslint . && madge -c . && jest",
     "build": "rm -rf ./dist/* && tsc",
+    "start-db": "docker-compose -f ./docker/compose/docker-compose.start-db.yml down && docker-compose -f ./docker/compose/docker-compose.start-db.yml -p querkle up",
     "type-check": "tsc --noEmit"
   },
   "repository": {
     "type": "git",
-    "url": "https://carvanadev.visualstudio.com/DefaultCollection/Carvana.VehicleExperience/_git/Quervana"
+    "url": "https://carvanadev.visualstudio.com/DefaultCollection/Carvana.VehicleExperience/_git/Querkle"
   },
   "keywords": [
     "ORM",
@@ -29,6 +30,7 @@
   "author": "Ralf Popescu",
   "license": "UNLICENSED",
   "dependencies": {
+    "@types/pg": "^7.14.4",
     "atob": "^2.1.2",
     "btoa": "^1.2.1",
     "cryptr": "^6.0.1",
@@ -39,7 +41,8 @@
     "jest": "^24.9.0",
     "lodash": "^4.17.15",
     "md5": "^2.2.1",
-    "mssql": "^6.0.1"
+    "mssql": "^6.0.1",
+    "pg": "^8.3.0"
   },
   "devDependencies": {
     "@types/jest": "^26.0.4",

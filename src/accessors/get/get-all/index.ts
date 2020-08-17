@@ -8,13 +8,12 @@ type GetAllAccessorOptions = {
 export const getAll = ({
   pool,
   translator,
-  schemaName,
 }: Dependencies) => async <T>({ entity }: GetAllAccessorOptions) => {
   if (!entity) {
     throw new Error('entity was not provided for getAll operation.');
   }
 
-  const queryString = `SELECT * FROM ${schemaName}.[${translator.objToRel(entity)}];`;
+  const queryString = `SELECT * FROM "${translator.objToRel(entity)}";`;
 
   // TODO: Fix types here.
   // @ts-ignore

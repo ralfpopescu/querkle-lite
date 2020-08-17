@@ -2,21 +2,17 @@ version: '3'
 services:
   querkle:
     image: querkle:latest
-    command: bash -c "./wait-for-it/wait-for-it.sh -h db -p 1433 -t 30 && npm run prepare-test-db && npm run test-cmd"
+    command: bash -c "./wait-for-it/wait-for-it.sh -h querkledb -p 5432 -t 30 && npm run prepare-test-db && npm run test-cmd"
     links:
-      - db
+      - querkledb
     depends_on:
-      - db
+      - querkledb
+
+  querkledb:
+    image: postgres:latest
     environment:
-      - SERVICE_DATABASE_NAME=querkle
-      - SERVICE_DATABASE_SERVER=db
-      - SERVICE_DATABASE_USER=SA
-      - SERVICE_DATABASE_PASSWORD=Testpassword123
-  db:
-    image: "mcr.microsoft.com/mssql/server:2019-GA-ubuntu-16.04"
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Testpassword123
-    restart: always
+      - POSTGRES_USER=quser
+      - POSTGRES_PASSWORD=qpass
+      - POSTGRES_DB=qdb
     ports:
-      - "1433:1433"
+      - "5432:5432"

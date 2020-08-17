@@ -1,13 +1,42 @@
-import sql from 'mssql';
+const { Pool } = require('pg')
+import type { Pool as PoolType } from 'pg'
 
-export const createPool = async (config: sql.config) => {
-  const pool = new sql.ConnectionPool(config);
+type PoolOptions = {
+  user: string,
+  host: string,
+  database: string,
+  password: string,
+  port?: number,
+}
 
-  pool.on('error', (err: Error) => {
-    throw new Error(`Error starting pool: ${err.name} - ${err.message}`);
-  });
+export const createPool = async (options?: PoolOptions): Promise<PoolType> => {
+  const envOptions = {
+    host: "db",
+    database: "querkledb",
+    user: "querkleuser",
+    password: "querklepass"
+  }
+  const coalescedOptions = { ...envOptions, ...options }
 
-  await pool.connect();
+  console.log('coalescedOptions', coalescedOptions)
 
-  return pool;
+    try {
+    const pool = new Pool(coalescedOptions)
+    const client = await pool.connect()
+    return client;
+  } catch (e) {
+    throw new Error(`Failed to create pool. ${e}`)
+  }
+  
+};
+
+export const createPoolConnectionString = async (conString: String): Promise<PoolType> => {
+    try {
+    const pool = new Pool(conString)
+    const client = await pool.connect()
+    return client;
+  } catch (e) {
+    throw new Error(`Failed to create pool. ${e}`)
+  }
+  
 };

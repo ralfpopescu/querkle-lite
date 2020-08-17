@@ -17,9 +17,9 @@ export const multiValueString = inputArray => inputArray
   .map((item, i) => `(${Object.keys(item)
     .map((o) => `@${o}${i}`).join(',')})`).join(',');
 
-export const stringifyUpdates = (updatedFields) => {
+export const stringifyUpdates = (updatedFields: Object, translator: Translator) => {
   const keys = Object.keys(updatedFields);
-  const updates = keys.map(key => `${camelToSnake(key)} = @${key}`);
+  const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
   return updates.join(',');
 };
 

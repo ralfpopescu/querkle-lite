@@ -1,5 +1,6 @@
 import { Dependencies, ExcludeGeneratedColumns } from '../../index';
-import { dbStringifier, determineType, format, query } from '../../../services';
+import { dbStringifier, format, query } from '../../../services';
+import { Translator } from '../../../services/db-stringifier';
 
 const { wrapSqlInTryCatch } = require('../../../handle-error');
 
@@ -8,11 +9,19 @@ type InsertOptions<T> = {
   readonly input: ExcludeGeneratedColumns<T>;
 };
 
+const createValueString = (input: object) => {
+  const values = Object.values(input)
+  return `(${values.map((_, i) => `$${i + 1}`).join(', ')})`
+}
+
+const createKeyString = (input: object, translator: Translator) => {
+  const keys = Object.keys(input)
+  return `(${keys.map(key => translator.objToRel(key)).join(', ')})`
+}
+
 export const insert = ({
   pool,
-  model,
   translator,
-  schemaName,
 }: Dependencies) => async <T>({ entity, input }: InsertOptions<T>) => {
   if (entity === null || entity === undefined) {
     throw new Error('entity was not provided for insert operation.');
@@ -21,24 +30,16 @@ export const insert = ({
     throw new Error(`input was not provided for insert operation (entity: ${entity}).`);
   }
 
-  const paramTypes = Object.keys(input)
-    .map(key => ({
-      [key]: determineType({
-        param: key, entity, value: input[key], model,
-      }),
-    }))
-    .reduce((acc, curr) => ({ ...acc, ...curr }));
-
-  const queryString = wrapSqlInTryCatch(`
-    INSERT INTO ${schemaName}.[${translator.objToRel(entity)}] ${dbStringifier.keyString(input)}
-    OUTPUT INSERTED.* VALUES ${dbStringifier.valueString(input)}
-  `);
+  const queryString =`
+    INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(input, translator)}
+    VALUES ${createValueString(input)}
+    RETURNING *
+  `;
 
   try {
     const response = await query({
-      params: (input as any),
+      params: Object.values(input),
       queryString,
-      paramTypes,
       pool,
     });
     return format<T>(response, translator)[0];

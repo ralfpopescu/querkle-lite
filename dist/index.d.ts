@@ -12,7 +12,7 @@ export { sqlTypes } from './sql-types';
 declare type PreparedAccessors = {
     [K in keyof typeof accessors]: ReturnType<(typeof accessors)[K]>;
 };
-export declare type Quervana = {
+export declare type Querkle = {
     readonly close: () => Promise<void>;
     readonly pool: ConnectionPool;
     readonly model: Model;
@@ -23,4 +23,4 @@ export declare type Quervana = {
     readonly get: Get;
     readonly batchSql: BatchSql;
 } & PreparedAccessors;
-export declare const initQuervana: (pool: ConnectionPool, schemaName: string, model: Model, translator?: Translator) => Quervana;
+export declare const initQuerkle: (pool: ConnectionPool, schemaName: string, model: Model, translator?: Translator) => Querkle;

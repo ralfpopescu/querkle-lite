@@ -1,13 +1,11 @@
 import btoa from 'btoa';
 import atob from 'atob';
 
-import { EntityParams, EntityParamTypes } from '../../execute-sql';
 import { StringKeys, Transform, TransformMultiple } from '../../index';
 import { BatchIdentifier } from '../index';
 
 export type SerializedBatchSql<T, R> = {
   readonly serialization: string;
-  readonly paramTypes: EntityParamTypes<T>;
   readonly batchEntity: string;
   readonly batchParam: StringKeys<T>;
   readonly transform: Transform<T, R>;
@@ -17,9 +15,8 @@ export type SerializedBatchSql<T, R> = {
 
 export type DeserializedBatchSql<T, R> = {
   readonly queryString: string;
-  readonly params: EntityParams<T>;
+  readonly params: Array<any>;
   readonly paramString?: string;
-  readonly paramTypes: EntityParamTypes<T>;
   readonly batchEntity: string;
   readonly batchParam: StringKeys<T>;
   readonly addToBatch: BatchIdentifier;
@@ -34,21 +31,13 @@ export type DeserializedBatchSql<T, R> = {
 export const encode = str => btoa(str);
 export const decode = str => atob(str);
 
-export const generateParamSerialization = <T>(params: EntityParams<T>): string => {
-  const sortedParamKeys = Object.keys(params).sort();
-  const sortedObjectArray = sortedParamKeys.map(key => params[key]);
-
-  return sortedObjectArray.reduce((acc, curr, index) => {
-    const key = Object.keys(curr)[0];
-    const value = curr[key];
-    return encode(`${acc}${key}:${value}${index < sortedObjectArray.length ? '+' : ''}`);
-  }, '');
+export const generateParamSerialization = <T>(params: Array<any>): string => {
+  return params.join('&')
 };
 
 export const serializeBatchSql = <T, R>({
   queryString,
   params,
-  paramTypes,
   addToBatch,
   batchEntity,
   batchParam,
@@ -67,7 +56,6 @@ export const serializeBatchSql = <T, R>({
 
   return {
     serialization,
-    paramTypes,
     batchEntity,
     batchParam,
     transform,
@@ -83,7 +71,7 @@ export const deserializeBatchSql = <T, R>(serializedBatchSql: SerializedBatchSql
   const queryString = decode(hashedQueryString);
 
   const paramString = splitSerializedBatchSql[1];
-  let params: EntityParams<T>;
+  let params: Array<any>;
   if (paramString === 'none') {
     params = null;
   } else {
@@ -100,7 +88,6 @@ export const deserializeBatchSql = <T, R>(serializedBatchSql: SerializedBatchSql
   const addToBatch = splitSerializedBatchSql[2] === 'none' ? null : splitSerializedBatchSql[2];
   const multiple = splitSerializedBatchSql[3] === 'yes';
   const {
-    paramTypes,
     batchEntity,
     batchParam,
     transform,
@@ -112,7 +99,6 @@ export const deserializeBatchSql = <T, R>(serializedBatchSql: SerializedBatchSql
     queryString,
     params,
     paramString,
-    paramTypes,
     batchEntity,
     batchParam,
     addToBatch,

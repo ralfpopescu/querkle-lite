@@ -1,9 +1,9 @@
-# quervana
+# querkle
 ## A SQL Server ORM and Query Loader for GraphQL
 
-Quervana is a super simple, easy-to-setup library tailored for GraphQL APIs whose main purpose is to access data from a SQL Server database ***efficiently***.
+Querkle is a super simple, easy-to-setup library tailored for GraphQL APIs whose main purpose is to access data from a SQL Server database ***efficiently***.
 
-## quervana key features:
+## querkle key features:
 1. Automatic model generation from your database, meaning no need to define your model in code or pass parameter types to basic operations
 2. Automatic operation batching, making it perfect for GraphQL; no more clunky loader patterns
 3. Automatic object-relational mapping that you can override to match your existing sql and javascript conventions, so you can get convenient object-relational mapping for any MSSQL database
@@ -16,9 +16,9 @@ If you're building a GraphQL API that interacts with a SQL Server database, you 
 
 ## Setting up
 First, let's import the core components of the library.
-```const { initQuervana, createPool, generateModel } = require('quervana');```
+```const { initQuerkle, createPool, generateModel } = require('querkle');```
 
-`initQuervana(pool, schemaName, model, translator)` takes 4 arguments: a pool, a schema name, a model, and a translator object.
+`initQuerkle(pool, schemaName, model, translator)` takes 4 arguments: a pool, a schema name, a model, and a translator object.
 
 The pool can be created using createPool like this:
 `const pool = await createPool(config)`
@@ -36,7 +36,7 @@ where the config looks like this:
 Your model can be generated directly from your database by calling generateModel:
 `const model = await generateModel(pool, schemaName)`
 
-The `schemaName` is the name of the schema that your entities (table names) belong too. If you need to switch schemas, you will need to call `initQuervana` again with your pool and model but a new schema name.
+The `schemaName` is the name of the schema that your entities (table names) belong too. If you need to switch schemas, you will need to call `initQuerkle` again with your pool and model but a new schema name.
 
 The translator object is an object with two functions: `objToRel` and `relToObj`. These functions take care of the mapping between your database names and your code names, making it possible for you to integrate with existing databases without enforcing any particular naming convenctions. For example, the default translator assumes the names in your database are snake case, like `my_snake_case_table`, whereas the code is camel, so we want it to look like `mySnakeCaseTable`. Our translator will look like
 this:
@@ -49,17 +49,17 @@ this:
 You can use these functions to handle exceptions-to-the-rules as well. 
 
 ## Batching
-This uses Facebook’s `dataloader` under the hood, so if you are familiar with it, you can think of quervana as a dynamic one-size-fits-all loader.
+This uses Facebook’s `dataloader` under the hood, so if you are familiar with it, you can think of querkle as a dynamic one-size-fits-all loader.
 
 ## Using the library
 
-Let's attach a quervana instance to our context object. Note that we'll want to create a new instance for each request, as this instantiates a new loader instance as well.
+Let's attach a querkle instance to our context object. Note that we'll want to create a new instance for each request, as this instantiates a new loader instance as well.
 
 ```
 const server = new ApolloServer({
   typeDefs,
   resolvers,
-  context: async () => ({ quervana: initQuervana(pool, schemaName, model, translator ) }),
+  context: async () => ({ querkle: initQuerkle(pool, schemaName, model, translator ) }),
 });
 ```
 
@@ -67,30 +67,30 @@ We can now really easily query entities!
 
 ## Basic Operations
 
-Quervana supports `get`, `getAll`, `insert`, `insertMany`, `update`, and `delete` at this time. These are useful short-hands, as they create parameterized queries but do not need parameter types passed to them. Each operation return a Promise of the affected rows.
+Querkle supports `get`, `getAll`, `insert`, `insertMany`, `update`, and `delete` at this time. These are useful short-hands, as they create parameterized queries but do not need parameter types passed to them. Each operation return a Promise of the affected rows.
 
 ### Getting
 
 **A simple get:**
 
-All calls to `quervana.get` in a single tick of the event loop will be batched into atomic gets by entity and key.
+All calls to `querkle.get` in a single tick of the event loop will be batched into atomic gets by entity and key.
 
 ```
 const Query = {
-  zooKeeper: async (obj, { id }, { quervana }) => quervana.get({ entity: 'zooKeeper', where: 'id', is: id }),
+  zooKeeper: async (obj, { id }, { querkle }) => querkle.get({ entity: 'zooKeeper', where: 'id', is: id }),
 };
 ```
 If you're expecting an array of entities back, add `multiple = true` to your query. Otherwise, we return the first instance:
 ```
 const Habitat = {
-  animals: async ({ id }, args, { quervana }) => quervana.get({ entity: 'animal', where: 'habitatId', is: id, multiple = true }),
+  animals: async ({ id }, args, { querkle }) => querkle.get({ entity: 'animal', where: 'habitatId', is: id, multiple = true }),
 };
 ```
 
 **Get all of an entity:**
 ```
 const Query = {
-  animals: async (obj, { id }, { quervana }) => quervana.getAll({ entity: 'animal' }),
+  animals: async (obj, { id }, { querkle }) => querkle.getAll({ entity: 'animal' }),
 };
 ```
 
@@ -102,7 +102,7 @@ A **single insertion** looks like this. The keys of the `input` should directly 
 
 ```
 const Mutation = {
-  createAnimal: async (obj, { input }, { quervana }) => quervana.insert({ entity: 'animal', input }),
+  createAnimal: async (obj, { input }, { querkle }) => querkle.insert({ entity: 'animal', input }),
 };
 ```
 
@@ -110,7 +110,7 @@ We can **insertMany** like this, where `inputArray` is an array of inputs:
 
 ```
 const Mutation = {
-  createAnimals: async (obj, { input }, { quervana }) => quervana.insertMany({ entity: 'animal', inputArray }),
+  createAnimals: async (obj, { input }, { querkle }) => querkle.insertMany({ entity: 'animal', inputArray }),
 };
 ```
 
@@ -120,7 +120,7 @@ To **hard-delete**, use the following:
 
 ```
 const Mutation = {
-  deleteAnimal: async (obj, { id }, { quervana }) => quervana.remove({ entity: 'animal', where: 'id', is: id }),
+  deleteAnimal: async (obj, { id }, { querkle }) => querkle.remove({ entity: 'animal', where: 'id', is: id }),
 };
 ```
 
@@ -128,7 +128,7 @@ const Mutation = {
 
 ```
 const Mutation = {
-  updateAnimal: async (obj, { input: { payload, id } }, { quervana }) => quervana.update({
+  updateAnimal: async (obj, { input: { payload, id } }, { querkle }) => querkle.update({
     entity: 'animal', input: payload, where: 'id', is: id,
   }),
 };
@@ -136,24 +136,24 @@ const Mutation = {
 
 ## Custom sql execution
 
-We can use `quervana.executeSql` to run custom sql WITHOUT batching. It takes an object with 3 fields:
+We can use `querkle.executeSql` to run custom sql WITHOUT batching. It takes an object with 3 fields:
 
-`quervana.executeSql({ queryString, params, paramTypes });`
+`querkle.executeSql({ queryString, params, paramTypes });`
 
 The query string is our custom query. Parameterization is done via the @ symbol:
 `SELECT * from person WHERE name = @name;`
 
 `params` will be our input, like `{ name: 'George' }`, matching the @param in your query.
 
-`paramTypes` describes the types of the input fields, like `{ name: sqlTypes.varChar(50) }`. These should come from our model that we generated. You could access the model directly like `quervana.model.person.name.type`, or we can use a handy method on the quervana object called `getParamTypes` which will return the types:
+`paramTypes` describes the types of the input fields, like `{ name: sqlTypes.varChar(50) }`. These should come from our model that we generated. You could access the model directly like `querkle.model.person.name.type`, or we can use a handy method on the querkle object called `getParamTypes` which will return the types:
 
-`const types = quervana.getParamTypes({ entity: 'person', params: ['name']})`
+`const types = querkle.getParamTypes({ entity: 'person', params: ['name']})`
 
 ## batchSql
 
-This is one of the most powerful features of quervana. You can use it to batch any arbitrary sql.
+This is one of the most powerful features of querkle. You can use it to batch any arbitrary sql.
 
-Using the [BATCH] symbol, we can add to our batch, and quervana will automatically map results back to whatever call added that particular value. This looks like:
+Using the [BATCH] symbol, we can add to our batch, and querkle will automatically map results back to whatever call added that particular value. This looks like:
 ```
 const queryString = '
   SELECT
@@ -165,21 +165,21 @@ const queryString = '
   WHERE test.zoo.id IN [BATCH]';
 
   const results = await Promise.all([
-    quervana.batchSql({
+    querkle.batchSql({
       queryString,
       addToBatch: 0,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
-    quervana.batchSql({
+    querkle.batchSql({
       queryString,
       addToBatch: 1,
       batchEntity: 'zoo',
       batchParam: 'id',
       multiple: true,
     }),
-    quervana.batchSql({
+    querkle.batchSql({
       queryString,
       addToBatch: 2,
       batchEntity: 'zoo',
@@ -197,9 +197,9 @@ You can also use `params` and `paramTypes` as described above in `executeSql`; `
 **transform, transformMultiple**
 
 `get` and `batchSql` both have access to these optional parameters.
-Use these parameters to transform a result or the result set before returning it. Though async/await will give you the same load benefits (provided they happen in the same event loop tick, so careful when doing async/await sequentially), part of the quervana philosophy is that every GraphQL resolver returns a quervana promise. `transform` and `transformMultiple` helps make that possible by adding additional business logic to your data.
+Use these parameters to transform a result or the result set before returning it. Though async/await will give you the same load benefits (provided they happen in the same event loop tick, so careful when doing async/await sequentially), part of the querkle philosophy is that every GraphQL resolver returns a querkle promise. `transform` and `transformMultiple` helps make that possible by adding additional business logic to your data.
 
-```quervana.batchSql({
+```querkle.batchSql({
       queryString: 'SELECT
                     test.animal.id,
                     test.animal.name,

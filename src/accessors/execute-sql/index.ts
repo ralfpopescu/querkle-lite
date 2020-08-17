@@ -1,17 +1,10 @@
 import { format, query } from '../../services';
-import { StringKeys } from '../index';
-import { ColumnType } from '../../generate-model';
 
-export type Params = { readonly [key: string]: string | number };
-export type ParamTypes = { readonly [key: string]: ColumnType };
-
-export type EntityParams<T> = { readonly [key in StringKeys<T>]: string | number };
-export type EntityParamTypes<T> = { readonly [key in StringKeys<T>]: ColumnType };
+export type Params = Array<string | number | boolean>;
 
 type BaseOptions<T> = {
   readonly queryString: string;
-  readonly params?: EntityParams<T>;
-  readonly paramTypes?: EntityParamTypes<T>;
+  readonly params?: Params;
 };
 
 type OptionsSingle<T> = BaseOptions<T> & {
@@ -33,14 +26,12 @@ export const executeSql = ({
 }): ExecuteSql => async <T>({
   queryString,
   params,
-  paramTypes,
   multiple,
 }) => {
   try {
     const response = await query({
       queryString,
       params,
-      paramTypes,
       pool,
     });
 

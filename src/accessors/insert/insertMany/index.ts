@@ -1,12 +1,11 @@
 import sql, { IRow } from 'mssql';
 
 import { Dependencies, ExcludeGeneratedColumns } from '../../index';
-import { determineType, format } from '../../../services';
+import { format, query } from '../../../services';
 
 type InsertManyOptions<T> = {
   readonly entity: string;
   readonly inputArray: ReadonlyArray<Partial<ExcludeGeneratedColumns<T>>>;
-  readonly returnInserted?: boolean;
 };
 
 const createColumn = (paramName, entity, model, translator) => {
@@ -22,17 +21,32 @@ const createColumn = (paramName, entity, model, translator) => {
   return `${translator.objToRel(paramName)} ${paramTypeName}${suffix}${model[entity][paramName].nullable ? '' : ' NOT NULL'}`;
 };
 
-const serializeColumns = inputArray => Object.keys(inputArray[0]).join('_');
+const createKeyString = (obj, translator) => `(${Object.keys(obj)
+  .map(key => translator.objToRel(key)).join(', ')})`
+
+const createValuesString = (inputArray) => {
+  const lengthOfOneInput = Object.keys(inputArray[0]).length
+  const numberOfInputs = inputArray.length
+  let arrayToAdd = []
+  const strArray = []
+  for(let i = 0; i < numberOfInputs; i += 1) {
+    arrayToAdd = []
+    for(let j = 0; j < lengthOfOneInput; j += 1) {
+      arrayToAdd.push(`$${i * lengthOfOneInput + j + 1}`) 
+    }
+    strArray.push(arrayToAdd)
+  }
+  const str = strArray.map(valueArray => `(${valueArray.join(', ')})`).join(', ')
+  console.log(str)
+  return str
+}
 
 export const insertMany = ({
   pool,
-  model,
   translator,
-  schemaName,
 }: Dependencies) => async <T>({
   entity,
   inputArray,
-  returnInserted,
 }: InsertManyOptions<T>): Promise<ReadonlyArray<T>> => {
   if (entity === null || entity === undefined) {
     throw new Error('entity was not provided for insertMany operation.');
@@ -51,62 +65,19 @@ export const insertMany = ({
     throw new Error(`All elements of input array need to have the same keys (entity: ${entity}).`);
   }
 
-  if (returnInserted) {
-    const tempTableName = `##staging_${entity}_${serializeColumns(inputArray)}`;
-    const createStagingTable = `
-    IF OBJECT_ID('tempdb..${tempTableName}') IS NOT NULL
-      TRUNCATE TABLE ${tempTableName}
-    ELSE
-      CREATE TABLE ${tempTableName}
-    (
-      ${Object.keys(inputArray[0])
-      .map(paramName => createColumn(paramName, entity, model, translator))
-      .join(', \n')
-    }
-    )`;
+  const queryString = `
+  INSERT INTO ${translator.objToRel(entity)}${createKeyString(inputArray[0], translator)} 
+  VALUES ${createValuesString(inputArray)}
+  RETURNING *`
 
-    await pool.query(createStagingTable);
+  console.log('queryStringqueryString', queryString)
 
-    const tableName = `${tempTableName}`;
-    const table = new sql.Table(tableName);
-    const params = Object.keys(inputArray[0]);
-    params.forEach((param) => table.columns
-      .add(
-        translator.objToRel(param),
-        determineType({ param, entity, model }),
-        { nullable: model[entity][param].nullable },
-      ));
-    inputArray.forEach((input) => {
-      const row: IRow = Object.values(input);
-      table.rows.add(...row);
-    });
-    const request = new sql.Request(pool);
-    await request.bulk(table);
+  const params = inputArray.reduce((acc, curr) => [...acc, ...Object.values(curr)], [])
 
-    const insertIntoPrimaryTable = `
-    INSERT INTO ${schemaName}.[${translator.objToRel(entity)}] ( ${Object.keys(inputArray[0]).map(paramName => translator.objToRel(paramName)).join(', ')})
-    OUTPUT INSERTED.*
-    SELECT ${Object.keys(inputArray[0]).map(paramName => translator.objToRel(paramName)).join(', ')} FROM ${tempTableName};
-    `;
+  console.log('paramsparams', params)
 
-    const result = await pool.query(insertIntoPrimaryTable);
-    return format(result.recordset, translator);
-  }
+  const response = await query({ queryString, params, pool })
 
-  const tableName = `${schemaName}.[${translator.objToRel(entity)}]`;
-  const table = new sql.Table(tableName);
-  const params = Object.keys(inputArray[0]);
-  params.forEach(param => table.columns
-    .add(
-      translator.objToRel(param),
-      determineType({ param, entity, model }),
-      { nullable: model[entity][param].nullable },
-    ));
-  inputArray.forEach(input => {
-    const row: IRow = Object.values(input);
-    table.rows.add(...row);
-  });
-  const request = new sql.Request(pool);
-  await request.bulk(table);
-  return inputArray;
+  return format<T>(response, translator);
+
 };

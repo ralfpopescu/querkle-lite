@@ -1,4 +1,4 @@
-import { executeSql, EntityParams, EntityParamTypes, Params, ParamTypes } from '../../../execute-sql';
+import { executeSql, Params } from '../../../execute-sql';
 import { Dependencies, StringKeys } from '../../../index';
 
 export type BatchResult<T> = {
@@ -12,8 +12,7 @@ export type BatchResult<T> = {
 
 type BaseOptions<T> = {
   readonly queryString: string;
-  readonly params: EntityParams<T>;
-  readonly paramTypes: EntityParamTypes<T>;
+  readonly params: Array<any>;
   readonly hashedQueryString: string;
   readonly hashedParamString: string;
   readonly batchEntity: string;
@@ -22,25 +21,21 @@ type BaseOptions<T> = {
 
 type HasBatchOptions<T> = BaseOptions<T> & {
   readonly batchValues: Params;
-  readonly batchTypes: ParamTypes;
 };
 
 export const executeHasBatch = <T>(dependencies: Dependencies) => async ({
   queryString,
   params,
-  paramTypes,
   hashedQueryString,
   hashedParamString,
   batchEntity,
   batchParam,
   batchValues,
-  batchTypes,
 }: HasBatchOptions<T>): Promise<BatchResult<T>> => {
   const preparedExecuteSql = executeSql(dependencies);
   const result = await preparedExecuteSql<T>({
     queryString,
-    params: { ...params, ...batchValues },
-    paramTypes: { ...paramTypes, ...batchTypes },
+    params: [...params, ...batchValues ],
     multiple: true,
   });
 
@@ -56,7 +51,6 @@ export const executeHasBatch = <T>(dependencies: Dependencies) => async ({
 export const executeNoBatch = <T>(dependencies: Dependencies) => async ({
   queryString,
   params,
-  paramTypes,
   hashedQueryString,
   hashedParamString,
   batchEntity,
@@ -66,7 +60,6 @@ export const executeNoBatch = <T>(dependencies: Dependencies) => async ({
   const result = await preparedExecuteSql<T>({
     queryString,
     params,
-    paramTypes,
     multiple: true,
   });
 
@@ -82,7 +75,6 @@ export const executeNoBatch = <T>(dependencies: Dependencies) => async ({
 export const executeHasBatchNoParameterization = <T>(dependencies: Dependencies) => async ({
   queryString,
   params,
-  paramTypes,
   hashedQueryString,
   hashedParamString,
   batchEntity,
@@ -92,7 +84,6 @@ export const executeHasBatchNoParameterization = <T>(dependencies: Dependencies)
   const result = await preparedExecuteSql<T>({
     queryString,
     params,
-    paramTypes,
     multiple: true,
   });
 

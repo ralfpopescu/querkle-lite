@@ -1,5 +1,6 @@
-import { dbStringifier, determineType, format, getParamTypes, query } from '../../services';
+import { format, query } from '../../services';
 import { Dependencies, ExcludeGeneratedColumns, IsValue, StringKeys } from '../index';
+import { Translator } from '../../services/db-stringifier';
 
 type BaseOptions<T> = {
   readonly entity: string;
@@ -22,11 +23,15 @@ type Update = {
   <T>(options: OptionsMultiple<T>): Promise<ReadonlyArray<T>>;
 };
 
+const stringifyUpdates = (updatedFields: Object, translator: Translator) => {
+  const keys = Object.keys(updatedFields);
+  const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
+  return updates.join(',');
+};
+
 export const update = ({
   pool,
-  model,
   translator,
-  schemaName,
 }: Dependencies): Update => async <T>({
   entity,
   input,
@@ -44,27 +49,23 @@ export const update = ({
     throw new Error(`'input' parameter was not provided for update operation (entity: ${entity}).`);
   }
 
-  const queryString = `UPDATE ${schemaName}.[${translator.objToRel(entity)}]
-    SET ${dbStringifier.stringifyUpdates(input)}
-    WHERE ${translator.objToRel(where)} = @is;
+  const numberOfColumnsToUpdate = Object.keys(input).length
 
-    SELECT * FROM ${schemaName}.[${translator.objToRel(entity)}]
-    WHERE ${translator.objToRel(where)} = @is;
+  const queryString = `UPDATE "${translator.objToRel(entity)}"
+    SET ${stringifyUpdates(input, translator)}
+    WHERE ${translator.objToRel(where)} = $${numberOfColumnsToUpdate + 1}
+    RETURNING *;
   `;
 
+  const values = Object.values(input)
+
   const response = await query({
-    params: { is, ...input },
-    paramTypes: {
-      is: determineType({
-        param: where, entity, value: is, model,
-      }),
-      ...getParamTypes(model)({ entity, params: Object.keys(input) }),
-    },
+    params: [...values, is],
     queryString,
     pool,
   });
 
-  if (response.length === 0) {
+  if (response.rows.length === 0) {
     throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
   }
 

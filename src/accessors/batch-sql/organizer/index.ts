@@ -1,10 +1,8 @@
 import { decode, DeserializedBatchSql } from '../serializer';
-import { EntityParams, EntityParamTypes } from '../../execute-sql';
 import { StringKeys } from '../../index';
 
 type ParamConfig<T> = {
-  readonly params: EntityParams<T> | null;
-  readonly paramTypes?: EntityParamTypes<T>;
+  readonly params: Array<any> | null;
   readonly multiple: boolean;
   readonly batchEntity: string;
   readonly batchParam: StringKeys<T>;
@@ -55,7 +53,6 @@ export const organizeBatchedSqls = <T, R>(deserializedBatchedSqls: ReadonlyArray
         parameterize: curr.parameterize,
         [paramString]: {
           params: curr.params,
-          paramTypes: curr.paramTypes,
           multiple: curr.multiple,
           batchEntity: curr.batchEntity,
           batchParam: curr.batchParam,

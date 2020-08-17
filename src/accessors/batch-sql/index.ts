@@ -2,7 +2,6 @@ import { deserializeBatchSql, serializeBatchSql, SerializedBatchSql } from './se
 import { executeOrganizedBatchedSqls } from './executions';
 import { prepareResultsForDataLoader } from './prepare-results';
 import { organizeBatchedSqls } from './organizer';
-import { EntityParams, EntityParamTypes } from '../execute-sql';
 import { Dependencies, Transform, TransformMultiple } from '../index';
 import DataLoader from 'dataloader';
 
@@ -14,8 +13,7 @@ type BaseOptions<T> = {
   readonly addToBatch?: BatchIdentifier;
   readonly batchEntity?: string;
   readonly batchParam?: keyof T;
-  readonly params?: EntityParams<T>;
-  readonly paramTypes?: EntityParamTypes<T>;
+  readonly params?: Array<any>;
 };
 
 type OptionsSingle<T> = BaseOptions<T> & {
@@ -79,11 +77,9 @@ export const batchSql = <T = any,  R = any, F = any>(
   const {
     queryString,
     params,
-    paramTypes,
     addToBatch,
     batchEntity,
     batchParam,
-    parameterize,
     ...rest
   } = options;
 
@@ -109,10 +105,8 @@ export const batchSql = <T = any,  R = any, F = any>(
     queryString,
     params,
     addToBatch,
-    paramTypes,
     batchEntity,
     batchParam,
-    parameterize,
     ...rest,
   }));
 };

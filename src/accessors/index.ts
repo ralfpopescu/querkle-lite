@@ -1,11 +1,10 @@
-import { ConnectionPool } from 'mssql';
+import type { Pool } from 'pg';
 
 import { insert, insertMany } from './insert';
 import { getAll, getMultiple } from './get';
 import { remove } from './remove';
 import { update } from './update';
 import { executeSql } from './execute-sql';
-import { Model } from '../generate-model';
 import { Translator } from '../services/db-stringifier';
 
 export { get, getBatchFunction } from './get';
@@ -20,10 +19,8 @@ export type Transform<T, R> = (record: T) => R;
 export type TransformMultiple<T, R> = (records: ReadonlyArray<T>) => R;
 
 export type Dependencies = {
-  readonly pool: ConnectionPool;
-  readonly model: Model;
+  readonly pool: Pool;
   readonly translator: Translator;
-  readonly schemaName: string;
 };
 
 export type Accessor<O, R> = (options: O) => R;

@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initQuervana = void 0;
+exports.initQuerkle = void 0;
 const dataloader_1 = __importDefault(require("dataloader"));
 const create_pool_1 = require("./create-pool");
 const services_1 = require("./services");
@@ -22,7 +22,7 @@ const accessorsWithDependencies = (dependencies) => {
     }
     return prepared;
 };
-exports.initQuervana = (pool, schemaName, model, translator = db_stringifier_1.defaultTranslator) => {
+exports.initQuerkle = (pool, schemaName, model, translator = db_stringifier_1.defaultTranslator) => {
     if (!pool) {
         throw new Error('Pool not provided.');
     }
