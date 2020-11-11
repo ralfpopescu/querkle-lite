@@ -14,6 +14,8 @@ import {
 import { BatchSql } from "./accessors/batch-sql";
 import { Get } from "./accessors/get/get";
 
+export { createPool, createPoolConnectionString } from "./create-pool";
+
 type PreparedAccessors = {
   [K in keyof typeof accessors]: ReturnType<typeof accessors[K]>;
 };
