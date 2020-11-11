@@ -1,9 +1,7 @@
 import { DeserializedBatchSql } from '../serializer';
-import { EntityParams, EntityParamTypes } from '../../execute-sql';
 import { StringKeys } from '../../index';
 declare type ParamConfig<T> = {
-    readonly params: EntityParams<T> | null;
-    readonly paramTypes?: EntityParamTypes<T>;
+    readonly params: Array<any> | null;
     readonly multiple: boolean;
     readonly batchEntity: string;
     readonly batchParam: StringKeys<T>;

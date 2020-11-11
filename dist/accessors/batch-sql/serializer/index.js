@@ -9,15 +9,9 @@ const atob_1 = __importDefault(require("atob"));
 exports.encode = str => btoa_1.default(str);
 exports.decode = str => atob_1.default(str);
 exports.generateParamSerialization = (params) => {
-    const sortedParamKeys = Object.keys(params).sort();
-    const sortedObjectArray = sortedParamKeys.map(key => params[key]);
-    return sortedObjectArray.reduce((acc, curr, index) => {
-        const key = Object.keys(curr)[0];
-        const value = curr[key];
-        return exports.encode(`${acc}${key}:${value}${index < sortedObjectArray.length ? '+' : ''}`);
-    }, '');
+    return params.join('&');
 };
-exports.serializeBatchSql = ({ queryString, params, paramTypes, addToBatch, batchEntity, batchParam, multiple, transform, transformMultiple, parameterize, }) => {
+exports.serializeBatchSql = ({ queryString, params, addToBatch, batchEntity, batchParam, multiple, transform, transformMultiple, parameterize, }) => {
     let paramString = 'none';
     if (params && Object.keys(params).length > 0) {
         paramString = exports.generateParamSerialization(params);
@@ -26,9 +20,10 @@ exports.serializeBatchSql = ({ queryString, params, paramTypes, addToBatch, batc
     const serialization = `${queryHash}-${paramString}-${addToBatch != null ? addToBatch : 'none'}-${multiple ? 'yes' : 'no'}`;
     return {
         serialization,
-        paramTypes,
         batchEntity,
+        addToBatch,
         batchParam,
+        multiple,
         transform,
         transformMultiple,
         parameterize,
@@ -53,14 +48,11 @@ exports.deserializeBatchSql = (serializedBatchSql) => {
         })
             .reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
     }
-    const addToBatch = splitSerializedBatchSql[2] === 'none' ? null : splitSerializedBatchSql[2];
-    const multiple = splitSerializedBatchSql[3] === 'yes';
-    const { paramTypes, batchEntity, batchParam, transform, transformMultiple, parameterize, } = serializedBatchSql;
+    const { batchEntity, batchParam, addToBatch, multiple, transform, transformMultiple, parameterize, } = serializedBatchSql;
     return {
         queryString,
         params,
         paramString,
-        paramTypes,
         batchEntity,
         batchParam,
         addToBatch,

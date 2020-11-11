@@ -11,12 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.executeSql = void 0;
 const services_1 = require("../../services");
-exports.executeSql = ({ pool, translator, }) => ({ queryString, params, paramTypes, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.executeSql = ({ pool, translator, }) => ({ queryString, params, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const response = yield services_1.query({
             queryString,
             params,
-            paramTypes,
             pool,
         });
         return multiple ? services_1.format(response, translator) : services_1.format(response, translator)[0];

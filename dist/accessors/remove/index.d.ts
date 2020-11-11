@@ -17,5 +17,5 @@ declare type Remove = {
     <T>(options: RemoveOptionsSingle<T>): Promise<WithQuantity<T>>;
     <T>(options: RemoveOptionsMultiple<T>): Promise<ReadonlyArray<WithQuantity<T>>>;
 };
-export declare const remove: ({ pool, model, translator, schemaName, }: Dependencies) => Remove;
+export declare const remove: ({ pool, translator, }: Dependencies) => Remove;
 export {};

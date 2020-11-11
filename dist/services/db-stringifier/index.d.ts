@@ -7,7 +7,7 @@ export declare const snakeToCamel: (str: any) => any;
 export declare const keyString: (input: any) => string;
 export declare const valueString: (paramsObj: any) => string;
 export declare const multiValueString: (inputArray: any) => any;
-export declare const stringifyUpdates: (updatedFields: any) => string;
+export declare const stringifyUpdates: (updatedFields: Object, translator: Translator) => string;
 export declare const format: <T>(obj: T, relToObj: Translator['relToObj']) => {
     [x: string]: any;
 };

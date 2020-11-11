@@ -9,9 +9,9 @@ exports.valueString = paramsObj => `(${Object.keys(paramsObj).map((o) => `@${o}`
 exports.multiValueString = inputArray => inputArray
     .map((item, i) => `(${Object.keys(item)
     .map((o) => `@${o}${i}`).join(',')})`).join(',');
-exports.stringifyUpdates = (updatedFields) => {
+exports.stringifyUpdates = (updatedFields, translator) => {
     const keys = Object.keys(updatedFields);
-    const updates = keys.map(key => `${exports.camelToSnake(key)} = @${key}`);
+    const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
     return updates.join(',');
 };
 exports.format = (obj, relToObj) => Object

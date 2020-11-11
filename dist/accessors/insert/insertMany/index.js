@@ -8,12 +8,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertMany = void 0;
-const mssql_1 = __importDefault(require("mssql"));
 const services_1 = require("../../../services");
 const createColumn = (paramName, entity, model, translator) => {
     const paramTypeName = model[entity][paramName].typeName;
@@ -27,8 +23,24 @@ const createColumn = (paramName, entity, model, translator) => {
         suffix = `(${precision}, ${scale})`;
     return `${translator.objToRel(paramName)} ${paramTypeName}${suffix}${model[entity][paramName].nullable ? '' : ' NOT NULL'}`;
 };
-const serializeColumns = inputArray => Object.keys(inputArray[0]).join('_');
-exports.insertMany = ({ pool, model, translator, schemaName, }) => ({ entity, inputArray, returnInserted, }) => __awaiter(void 0, void 0, void 0, function* () {
+const createKeyString = (obj, translator) => `(${Object.keys(obj)
+    .map(key => translator.objToRel(key)).join(', ')})`;
+const createValuesString = (inputArray) => {
+    const lengthOfOneInput = Object.keys(inputArray[0]).length;
+    const numberOfInputs = inputArray.length;
+    let arrayToAdd = [];
+    const strArray = [];
+    for (let i = 0; i < numberOfInputs; i += 1) {
+        arrayToAdd = [];
+        for (let j = 0; j < lengthOfOneInput; j += 1) {
+            arrayToAdd.push(`$${i * lengthOfOneInput + j + 1}`);
+        }
+        strArray.push(arrayToAdd);
+    }
+    const str = strArray.map(valueArray => `(${valueArray.join(', ')})`).join(', ');
+    return str;
+};
+exports.insertMany = ({ pool, translator, }) => ({ entity, inputArray, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (entity === null || entity === undefined) {
         throw new Error('entity was not provided for insertMany operation.');
     }
@@ -43,49 +55,12 @@ exports.insertMany = ({ pool, model, translator, schemaName, }) => ({ entity, in
             && Object.keys(curr).sort().join(',') === Object.keys(inputArray[i]).sort().join(','), true)) {
         throw new Error(`All elements of input array need to have the same keys (entity: ${entity}).`);
     }
-    if (returnInserted) {
-        const tempTableName = `##staging_${entity}_${serializeColumns(inputArray)}`;
-        const createStagingTable = `
-    IF OBJECT_ID('tempdb..${tempTableName}') IS NOT NULL
-      TRUNCATE TABLE ${tempTableName}
-    ELSE
-      CREATE TABLE ${tempTableName}
-    (
-      ${Object.keys(inputArray[0])
-            .map(paramName => createColumn(paramName, entity, model, translator))
-            .join(', \n')}
-    )`;
-        yield pool.query(createStagingTable);
-        const tableName = `${tempTableName}`;
-        const table = new mssql_1.default.Table(tableName);
-        const params = Object.keys(inputArray[0]);
-        params.forEach((param) => table.columns
-            .add(translator.objToRel(param), services_1.determineType({ param, entity, model }), { nullable: model[entity][param].nullable }));
-        inputArray.forEach((input) => {
-            const row = Object.values(input);
-            table.rows.add(...row);
-        });
-        const request = new mssql_1.default.Request(pool);
-        yield request.bulk(table);
-        const insertIntoPrimaryTable = `
-    INSERT INTO ${schemaName}.[${translator.objToRel(entity)}] ( ${Object.keys(inputArray[0]).map(paramName => translator.objToRel(paramName)).join(', ')})
-    OUTPUT INSERTED.*
-    SELECT ${Object.keys(inputArray[0]).map(paramName => translator.objToRel(paramName)).join(', ')} FROM ${tempTableName};
-    `;
-        const result = yield pool.query(insertIntoPrimaryTable);
-        return services_1.format(result.recordset, translator);
-    }
-    const tableName = `${schemaName}.[${translator.objToRel(entity)}]`;
-    const table = new mssql_1.default.Table(tableName);
-    const params = Object.keys(inputArray[0]);
-    params.forEach(param => table.columns
-        .add(translator.objToRel(param), services_1.determineType({ param, entity, model }), { nullable: model[entity][param].nullable }));
-    inputArray.forEach(input => {
-        const row = Object.values(input);
-        table.rows.add(...row);
-    });
-    const request = new mssql_1.default.Request(pool);
-    yield request.bulk(table);
-    return inputArray;
+    const queryString = `
+  INSERT INTO ${translator.objToRel(entity)}${createKeyString(inputArray[0], translator)} 
+  VALUES ${createValuesString(inputArray)}
+  RETURNING *`;
+    const params = inputArray.reduce((acc, curr) => [...acc, ...Object.values(curr)], []);
+    const response = yield services_1.query({ queryString, params, pool });
+    return services_1.format(response, translator);
 });
 //# sourceMappingURL=index.js.map

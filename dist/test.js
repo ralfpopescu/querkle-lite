@@ -26,100 +26,66 @@ const animals = [
     { name: 'Penguin', quantity: 10 },
     { name: 'Monkey', quantity: 4 },
 ];
-const model = {
-    zoo: {
-        id: { type: _1.sqlTypes.int, nullable: false },
-        city: { type: _1.sqlTypes.varChar(50), nullable: true },
-    },
-    animal: {
-        id: { type: _1.sqlTypes.int, nullable: false },
-        name: { type: _1.sqlTypes.varChar(50), nullable: true },
-        quantity: { type: _1.sqlTypes.int, nullable: true },
-        zooId: { type: _1.sqlTypes.int, nullable: true },
-    },
+var conString = "postgres://querkleuser:querklepass@127.0.0.1:5432/querkledb";
+const dbOptions = {
+    host: "querkledb",
+    database: "qdb",
+    user: "quser",
+    password: "qpass"
 };
 beforeAll((done) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(`Creating pool with config: ${config_1.default}`);
-    pool = yield _1.createPool(config_1.default);
+    pool = yield _1.createPool(dbOptions);
     console.log('Created pool.');
-    console.log('Creating schema named test...');
-    yield pool.request().query('CREATE SCHEMA test');
-    console.log('Created schema test.');
-    console.log('Creating schema named testtwo...');
-    yield pool.request().query('CREATE SCHEMA testtwo');
-    console.log('Created schema testtwo.');
-    console.log('Creating table test.zoo...');
-    yield pool.request().query(`
-    CREATE TABLE test.zoo
+    console.log('Creating uuid extension...');
+    yield pool.query(`
+  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+  `);
+    console.log('Created uuid extention.');
+    console.log('Creating table zoo...');
+    yield pool.query(`
+    CREATE TABLE IF NOT EXISTS zoo
     (
-      id   integer IDENTITY
-        CONSTRAINT pk_zoo PRIMARY KEY NOT NULL,
-      city VARCHAR(50)
-    );`);
-    console.log('Created table test.zoo.');
-    console.log('Creating table test.animal_info...');
-    yield pool.request().query(`
-    CREATE TABLE test.animal_info
+      id   uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      city text
+    );
+    
+    `);
+    console.log('Created table zoo.');
+    console.log('Creating table animal_info...');
+    yield pool.query(`
+    CREATE TABLE IF NOT EXISTS animal_info
     (
-      id          integer IDENTITY
-        CONSTRAINT pk_animal_info PRIMARY KEY NOT NULL,
-      description VARCHAR(50)
-    );`);
-    console.log('Created table test.animal_info.');
-    console.log('Creating table test.animal...');
-    yield pool.request().query(`
-    CREATE TABLE test.animal
+      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      description text
+    );
+    
+    `);
+    console.log('Created table animal_info.');
+    console.log('Creating table animal...');
+    yield pool.query(`
+    CREATE TABLE IF NOT EXISTS animal
     (
-      id             integer IDENTITY
-        CONSTRAINT pk_animal PRIMARY KEY NOT NULL,
-      name           VARCHAR(50),
+      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      name           text,
       quantity       integer,
-      animal_info_id integer REFERENCES test.animal_info (id),
-      zoo_id         integer REFERENCES test.zoo (id)
-    );`);
-    console.log('Created table test.animal.');
-    console.log('Creating table testtwo.animal...');
-    yield pool.request().query(`
-    CREATE TABLE testtwo.animal
-    (
-      id       integer IDENTITY
-        CONSTRAINT pk_animal PRIMARY KEY NOT NULL,
-      name     VARCHAR(50),
-      quantity integer,
-      zoo_id   integer REFERENCES test.zoo (id)
-    );`);
-    console.log('Created table testtwo.animal.');
-    const generatedModel = yield _1.generateModel(pool, 'test');
-    querkle = _1.initQuerkle(pool, 'test', generatedModel);
+      animal_info_id uuid REFERENCES animal_info (id),
+      zoo_id         uuid REFERENCES zoo (id)
+    );
+
+    TRUNCATE animal CASCADE;
+    
+    `);
+    console.log('Created table animal.');
+    querkle = _1.initQuerkle(pool);
     done();
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
-    yield pool.close();
-}));
-const modelMatcher = (testModel, querkleModel) => (table, param) => {
-    expect_1.default(testModel[table][param].type).toEqual(querkleModel[table][param].type);
-    expect_1.default(testModel[table][param].nullable).toEqual(querkleModel[table][param].nullable);
-};
-test('should generate model and not include from schema testtwo', () => __awaiter(void 0, void 0, void 0, function* () {
-    const matchModels = modelMatcher(model, querkle.model);
-    matchModels('zoo', 'id');
-    matchModels('zoo', 'city');
-    matchModels('animal', 'id');
-    matchModels('animal', 'name');
-    matchModels('animal', 'quantity');
-    matchModels('animal', 'zooId');
-}));
-test('should fail to generate model', () => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        yield _1.generateModel(pool, 'testthree');
-    }
-    catch (e) {
-        expect_1.default(e.message).toBe('Schema testthree provided no model. Available schemas: ["test","testtwo"]');
+    if (pool) {
+        yield pool.end();
     }
 }));
-test('should be case insensitive to schema name', () => __awaiter(void 0, void 0, void 0, function* () {
-    yield _1.generateModel(pool, 'TEST');
-}));
+const nonexistantUuid = 'f216668e-883e-430f-bb84-7e50ea7629e1';
 test('should succeed: insert zoo', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insert({ entity: 'zoo', input: { city: 'Atlanta' } });
     expect_1.default(response.id).toBeDefined();
@@ -128,19 +94,20 @@ test('should succeed: insert zoo', () => __awaiter(void 0, void 0, void 0, funct
 }));
 test('should succeed: get zoo city', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
-        entity: 'zoo', where: 'id', is: 1, returnField: 'city',
+        entity: 'zoo', where: 'id', is: zooId, returnField: 'city',
     });
     expect_1.default(response).toEqual('Atlanta');
 }));
 test('should succeed: get zoo city that does not exist should return null', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
-        entity: 'zoo', where: 'id', is: 20,
+        entity: 'zoo', where: 'id', is: nonexistantUuid,
     });
     expect_1.default(response).toEqual(null);
 }));
 test('should succeed: null result should still be transformed', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
-        entity: 'zoo', where: 'id', is: 20, transform: result => (result === null ? 'true' : 'false'),
+        entity: 'zoo', where: 'id', is: nonexistantUuid,
+        transform: result => (result === null ? 'true' : 'false'),
     });
     expect_1.default(response).toEqual('true');
 }));
@@ -148,7 +115,7 @@ test('should succeed: null results should still be transformed', () => __awaiter
     const response = yield querkle.get({
         entity: 'zoo',
         where: 'id',
-        is: 20,
+        is: nonexistantUuid,
         multiple: true,
         transformMultiple: results => (results.length === 0 ? 'true' : 'false'),
     });
@@ -156,7 +123,7 @@ test('should succeed: null results should still be transformed', () => __awaiter
 }));
 test('should succeed: get with transform', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
-        entity: 'zoo', where: 'id', is: 1, transform: (result) => ({ city: result.city.toUpperCase() }),
+        entity: 'zoo', where: 'id', is: zooId, transform: (result) => ({ city: result.city.toUpperCase() }),
     });
     expect_1.default(response.city).toEqual('ATLANTA');
 }));
@@ -182,11 +149,13 @@ test('should succeed: delete Tiger', () => __awaiter(void 0, void 0, void 0, fun
     expect_1.default(response.name).toEqual('Tiger');
     expect_1.default(response.quantity).toEqual(2);
 }));
+let insertedAnimalsIds = [];
 test('should succeed: insert many animals', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insertMany({
         entity: 'animal',
         inputArray: animals.map(animal => (Object.assign(Object.assign({}, animal), { zooId }))),
     });
+    insertedAnimalsIds = response.map(insertedAnimal => insertedAnimal.id);
     expect_1.default(response.length).toBe(3);
 }));
 test('should succeed: get all animals', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -194,7 +163,7 @@ test('should succeed: get all animals', () => __awaiter(void 0, void 0, void 0, 
     expect_1.default(response.length).toBe(3);
 }));
 test('should succeed: get multiple animals', () => __awaiter(void 0, void 0, void 0, function* () {
-    const response = yield querkle.getMultiple({ entity: 'animal', where: 'id', isIn: [2, 3, 4] });
+    const response = yield querkle.getMultiple({ entity: 'animal', where: 'id', isIn: insertedAnimalsIds });
     expect_1.default(response.length).toBe(3);
 }));
 test('should succeed: insert animal even though null value', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -207,16 +176,16 @@ test('should succeed: insert animal even though null value', () => __awaiter(voi
 }));
 test('should batch gets', () => __awaiter(void 0, void 0, void 0, function* () {
     const t0 = Date.now();
-    yield Promise.all([querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 2' }),
-        querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 3' }),
-        querkle.executeSql({ queryString: 'SELECT * FROM test.animal WHERE id = 4' })]);
+    yield Promise.all([querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[0]}'` }),
+        querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[1]}'` }),
+        querkle.executeSql({ queryString: `SELECT * FROM animal WHERE id = '${insertedAnimalsIds[2]}'` })]);
     const t1 = Date.now();
     const diffTime1 = Math.abs((t1 - t0) / 1000);
     const t2 = Date.now();
     yield Promise.all([
-        querkle.get({ entity: 'animal', where: 'id', is: 2 }),
-        querkle.get({ entity: 'animal', where: 'id', is: 3 }),
-        querkle.get({ entity: 'animal', where: 'id', is: 4 }),
+        querkle.get({ entity: 'animal', where: 'id', is: insertedAnimalsIds[0] }),
+        querkle.get({ entity: 'animal', where: 'id', is: insertedAnimalsIds[1] }),
+        querkle.get({ entity: 'animal', where: 'id', is: insertedAnimalsIds[2] }),
     ]);
     const t3 = Date.now();
     const diffTime2 = Math.abs(t3 - t2) / 1000;
@@ -227,7 +196,7 @@ test('should throw: insert a non-defined entity', () => __awaiter(void 0, void 0
         yield querkle.insert({ entity: 'critter', input: { zooId, name: 'Squirrel' } });
     }
     catch (e) {
-        expect_1.default(e.message).toMatch('Model for critter is not defined.');
+        expect_1.default(e.message).toMatch('critter insertion failed: relation \"critter\" does not exist');
     }
 }));
 test('should throw: inputs are not equal', () => __awaiter(void 0, void 0, void 0, function* () {
@@ -281,8 +250,9 @@ const matchResults = (result, animalsToMatch) => {
         lodash_1.default.isEqual(result.sort(), animalsToMatch.sort());
     }
 };
+let newZoo;
 test('batch sql - get cities animals are in', () => __awaiter(void 0, void 0, void 0, function* () {
-    const newZoo = yield querkle.insert({ entity: 'zoo', input: { city: 'Batchville' } });
+    newZoo = yield querkle.insert({ entity: 'zoo', input: { city: 'Batchville' } });
     yield querkle.insertMany({
         entity: 'animal',
         inputArray: [
@@ -293,7 +263,7 @@ test('batch sql - get cities animals are in', () => __awaiter(void 0, void 0, vo
             { name: 'Hippo', quantity: 1, zooId: newZoo.id },
         ],
     });
-    const allAnimals = yield querkle.getAll({ entity: 'animal ' });
+    const allAnimals = yield querkle.getAll({ entity: 'animal' });
     const allAnimalsWithZoos = allAnimals.filter(animal => !!animal.zooId);
     const zooIds = [...new Set(allAnimalsWithZoos.map(animal => animal.zooId))];
     const animalsByZooId = zooIds
@@ -302,45 +272,45 @@ test('batch sql - get cities animals are in', () => __awaiter(void 0, void 0, vo
             .filter(animal => animal.zooId === zId),
     })).reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
     const queryString = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.id IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo ON animal.zoo_id = zoo.id
+    WHERE zoo.id IN [BATCH]`;
     const results = yield Promise.all([
         querkle.batchSql({
             queryString,
-            addToBatch: 0,
+            addToBatch: zooId,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
         }),
         querkle.batchSql({
             queryString,
-            addToBatch: 1,
+            addToBatch: zooId,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
         }),
         querkle.batchSql({
             queryString,
-            addToBatch: 2,
+            addToBatch: newZoo.id,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
         })
     ]);
-    matchResults(results[0], animalsByZooId['0']);
-    matchResults(results[1], animalsByZooId['1']);
-    matchResults(results[2], animalsByZooId['2']);
+    matchResults(results[0], animalsByZooId[zooId]);
+    matchResults(results[1], animalsByZooId[zooId]);
+    matchResults(results[2], animalsByZooId[newZoo.id]);
 }));
 test('should succeed: get with transform multiple', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
         entity: 'animal',
         where: 'zooId',
-        is: 1,
+        is: zooId,
         multiple: true,
         transformMultiple: rs => rs.reduce((acc, curr) => `${acc}${curr.name}`, ''),
     });
@@ -350,37 +320,37 @@ test('batch sql - get all animals per city', () => __awaiter(void 0, void 0, voi
     const expected = [
         [
             {
-                id: 6, name: 'Pidgeon', zooId: 2, city: 'Batchville',
+                id: 6, name: 'Pidgeon', zooId: newZoo.id, city: 'Batchville',
             },
             {
-                id: 7, name: 'Hippo', zooId: 2, city: 'Batchville',
+                id: 7, name: 'Hippo', zooId: newZoo.id, city: 'Batchville',
             },
         ],
         [
             {
-                id: 2, name: 'Lion', zooId: 1, city: 'Boston',
+                id: 2, name: 'Lion', zooId, city: 'Boston',
             },
             {
-                id: 3, name: 'Penguin', zooId: 1, city: 'Boston',
+                id: 3, name: 'Penguin', zooId, city: 'Boston',
             },
             {
-                id: 4, name: 'Monkey', zooId: 1, city: 'Boston',
+                id: 4, name: 'Monkey', zooId, city: 'Boston',
             },
             {
-                id: 5, name: 'Turtle', zooId: 1, city: 'Boston',
+                id: 5, name: 'Turtle', zooId, city: 'Boston',
             },
         ],
         [],
     ];
     const queryString = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN [BATCH]`;
     const results = yield Promise.all([
         querkle.batchSql({
             queryString,
@@ -435,14 +405,14 @@ test('batch sql - parameterize off', () => __awaiter(void 0, void 0, void 0, fun
         [],
     ];
     const queryString = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN [BATCH]`;
     const results = yield Promise.all([
         querkle.batchSql({
             queryString,
@@ -514,22 +484,22 @@ test('batch sql - different queries', () => __awaiter(void 0, void 0, void 0, fu
         ],
     ];
     const queryString1 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN [BATCH]`;
     const queryString2 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.id IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo ON animal.zoo_id = zoo.id
+    WHERE zoo.id IN [BATCH]`;
     const results = yield Promise.all([
         querkle.batchSql({
             queryString: queryString1,
@@ -547,14 +517,14 @@ test('batch sql - different queries', () => __awaiter(void 0, void 0, void 0, fu
         }),
         querkle.batchSql({
             queryString: queryString2,
-            addToBatch: 0,
+            addToBatch: zooId,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
         }),
         querkle.batchSql({
             queryString: queryString2,
-            addToBatch: 1,
+            addToBatch: newZoo.id,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
@@ -593,22 +563,22 @@ test('batch sql - different queries with transforms', () => __awaiter(void 0, vo
         ],
     ];
     const queryString1 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN [BATCH]`;
     const queryString2 = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.id IN [BATCH]`;
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo ON animal.zoo_id = zoo.id
+    WHERE zoo.id IN [BATCH]`;
     const results = yield Promise.all([
         querkle.batchSql({
             queryString: queryString1,
@@ -628,47 +598,42 @@ test('batch sql - different queries with transforms', () => __awaiter(void 0, vo
         }),
         querkle.batchSql({
             queryString: queryString2,
-            addToBatch: 0,
+            addToBatch: zooId,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
         }),
         querkle.batchSql({
             queryString: queryString2,
-            addToBatch: 1,
+            addToBatch: newZoo.id,
             batchEntity: 'zoo',
             batchParam: 'id',
             multiple: true,
-            transform: (result) => (Object.assign(Object.assign({}, result), { zooId: result.zooId * 1000 })),
+            transform: (result) => (Object.assign(Object.assign({}, result), { zooId: result.zooId[0] })),
         })
     ]);
-    matchResults(results[0], expected[0]);
+    expect_1.default(results[0][0].city).toEqual('OVERRIDDEN CITY');
     expect_1.default(results[1]).toEqual(expected[1]);
-    matchResults(results[2], expected[2]);
-    matchResults(results[3], expected[3]);
+    expect_1.default(results[3][0].zooId.length).toEqual(1);
 }));
 test('execute sql', () => __awaiter(void 0, void 0, void 0, function* () {
     const queryString = `
-    SELECT test.animal.id,
-           test.animal.name,
-           test.zoo.id AS zoo_id,
-           test.zoo.city
-    FROM test.animal
-           JOIN test.zoo
-                ON test.animal.zoo_id = test.zoo.id
-    WHERE test.zoo.city IN (@one, @two, @three)`;
-    const zooParamTypes = querkle.getParamTypes({ entity: 'zoo', params: ['city'] });
-    const params = { one: 'Batchville', two: 'Boston', three: 'Random' };
-    const paramTypes = Object.keys(params).map(param => ({ [param]: zooParamTypes.city }))
-        .reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
+    SELECT animal.id,
+           animal.name,
+           zoo.id AS zoo_id,
+           zoo.city
+    FROM animal
+           JOIN zoo
+                ON animal.zoo_id = zoo.id
+    WHERE zoo.city IN ($1, $2, $3)`;
+    const params = ['Batchville', 'Boston', 'Random'];
     const results = yield querkle.executeSql({
-        queryString, params, paramTypes, multiple: true,
+        params, queryString, multiple: true,
     });
     expect_1.default(results.length).toBeGreaterThan(0);
 }));
 test('should succeed: insert many animals and return them', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insertMany({
-        returnInserted: true,
         entity: 'animal',
         inputArray: animals.map(animal => (Object.assign(Object.assign({}, animal), { zooId }))),
     });

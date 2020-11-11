@@ -8,18 +8,34 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createPool = void 0;
-const mssql_1 = __importDefault(require("mssql"));
-exports.createPool = (config) => __awaiter(void 0, void 0, void 0, function* () {
-    const pool = new mssql_1.default.ConnectionPool(config);
-    pool.on('error', (err) => {
-        throw new Error(`Error starting pool: ${err.name} - ${err.message}`);
-    });
-    yield pool.connect();
-    return pool;
+exports.createPoolConnectionString = exports.createPool = void 0;
+const { Pool } = require('pg');
+exports.createPool = (options) => __awaiter(void 0, void 0, void 0, function* () {
+    const envOptions = {
+        host: "db",
+        database: "querkledb",
+        user: "querkleuser",
+        password: "querklepass"
+    };
+    const coalescedOptions = Object.assign(Object.assign({}, envOptions), options);
+    try {
+        const pool = new Pool(coalescedOptions);
+        const client = yield pool.connect();
+        return client;
+    }
+    catch (e) {
+        throw new Error(`Failed to create pool. ${e}`);
+    }
+});
+exports.createPoolConnectionString = (conString) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const pool = new Pool(conString);
+        const client = yield pool.connect();
+        return client;
+    }
+    catch (e) {
+        throw new Error(`Failed to create pool. ${e}`);
+    }
 });
 //# sourceMappingURL=index.js.map

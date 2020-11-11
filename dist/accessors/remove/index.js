@@ -11,7 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.remove = void 0;
 const services_1 = require("../../services");
-exports.remove = ({ pool, model, translator, schemaName, }) => ({ entity, where, is, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.remove = ({ pool, translator, }) => ({ entity, where, is, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (entity === null || entity === undefined) {
         throw new Error('entity was not provided for remove operation.');
     }
@@ -23,19 +23,12 @@ exports.remove = ({ pool, model, translator, schemaName, }) => ({ entity, where,
     If intentionally want to delete where some field is null, please write custom SQL.`);
     }
     const queryString = `
-    DELETE FROM ${schemaName}.[${translator.objToRel(entity)}]
-    OUTPUT DELETED.* WHERE ${translator.objToRel(where)} = @is;
+    DELETE FROM "${translator.objToRel(entity)}"
+    WHERE ${translator.objToRel(where)} = $1
+    RETURNING *;
   `;
     const response = yield services_1.query({
-        params: { is },
-        paramTypes: {
-            is: services_1.determineType({
-                param: where,
-                value: is,
-                entity,
-                model,
-            }),
-        },
+        params: [is],
         queryString,
         pool,
     });

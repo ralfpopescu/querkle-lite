@@ -5,5 +5,5 @@ declare type GetMultipleAccessorOptions<T> = {
     readonly isIn: ReadonlyArray<IsValue>;
     readonly parameterize?: boolean;
 };
-export declare const getMultiple: ({ pool, model, translator, schemaName, }: Dependencies) => <T>({ entity, where, isIn, parameterize, }: GetMultipleAccessorOptions<T>) => Promise<readonly T[]>;
+export declare const getMultiple: ({ pool, translator, }: Dependencies) => <T>({ entity, where, isIn, }: GetMultipleAccessorOptions<T>) => Promise<readonly T[]>;
 export {};

@@ -11,11 +11,11 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAll = void 0;
 const services_1 = require("../../../services");
-exports.getAll = ({ pool, translator, schemaName, }) => ({ entity }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getAll = ({ pool, translator, }) => ({ entity }) => __awaiter(void 0, void 0, void 0, function* () {
     if (!entity) {
         throw new Error('entity was not provided for getAll operation.');
     }
-    const queryString = `SELECT * FROM ${schemaName}.[${translator.objToRel(entity)}];`;
+    const queryString = `SELECT * FROM "${translator.objToRel(entity)}";`;
     // TODO: Fix types here.
     // @ts-ignore
     const response = yield services_1.query({ queryString, pool });

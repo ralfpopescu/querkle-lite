@@ -16,5 +16,5 @@ declare type Update = {
     <T>(options: OptionsSingle<T>): Promise<T>;
     <T>(options: OptionsMultiple<T>): Promise<ReadonlyArray<T>>;
 };
-export declare const update: ({ pool, model, translator, schemaName, }: Dependencies) => Update;
+export declare const update: ({ pool, translator, }: Dependencies) => Update;
 export {};

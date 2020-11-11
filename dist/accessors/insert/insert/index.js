@@ -12,29 +12,30 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.insert = void 0;
 const services_1 = require("../../../services");
 const { wrapSqlInTryCatch } = require('../../../handle-error');
-exports.insert = ({ pool, model, translator, schemaName, }) => ({ entity, input }) => __awaiter(void 0, void 0, void 0, function* () {
+const createValueString = (input) => {
+    const values = Object.values(input);
+    return `(${values.map((_, i) => `$${i + 1}`).join(', ')})`;
+};
+const createKeyString = (input, translator) => {
+    const keys = Object.keys(input);
+    return `(${keys.map(key => translator.objToRel(key)).join(', ')})`;
+};
+exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(void 0, void 0, void 0, function* () {
     if (entity === null || entity === undefined) {
         throw new Error('entity was not provided for insert operation.');
     }
     if (input === null || input === undefined) {
         throw new Error(`input was not provided for insert operation (entity: ${entity}).`);
     }
-    const paramTypes = Object.keys(input)
-        .map(key => ({
-        [key]: services_1.determineType({
-            param: key, entity, value: input[key], model,
-        }),
-    }))
-        .reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
-    const queryString = wrapSqlInTryCatch(`
-    INSERT INTO ${schemaName}.[${translator.objToRel(entity)}] ${services_1.dbStringifier.keyString(input)}
-    OUTPUT INSERTED.* VALUES ${services_1.dbStringifier.valueString(input)}
-  `);
+    const queryString = `
+    INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(input, translator)}
+    VALUES ${createValueString(input)}
+    RETURNING *
+  `;
     try {
         const response = yield services_1.query({
-            params: input,
+            params: Object.values(input),
             queryString,
-            paramTypes,
             pool,
         });
         return services_1.format(response, translator)[0];

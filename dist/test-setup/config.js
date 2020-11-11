@@ -1,8 +1,7 @@
-require('dotenv').config();
 module.exports = {
-    server: process.env.SERVICE_DATABASE_SERVER,
-    database: process.env.SERVICE_DATABASE_NAME,
-    user: process.env.SERVICE_DATABASE_USER,
-    password: process.env.SERVICE_DATABASE_PASSWORD,
+    host: 'db',
+    database: 'querkledb',
+    user: 'querkleuser',
+    password: 'querklepass',
 };
 //# sourceMappingURL=config.js.map

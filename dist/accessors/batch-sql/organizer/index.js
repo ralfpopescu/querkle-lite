@@ -22,7 +22,6 @@ exports.organizeBatchedSqls = (deserializedBatchedSqls) => {
             }
             return Object.assign(Object.assign({}, acc), { queryString: serializer_1.decode(qs), parameterize: curr.parameterize, [paramString]: {
                     params: curr.params,
-                    paramTypes: curr.paramTypes,
                     multiple: curr.multiple,
                     batchEntity: curr.batchEntity,
                     batchParam: curr.batchParam,

@@ -11,12 +11,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.executeHasBatchNoParameterization = exports.executeNoBatch = exports.executeHasBatch = void 0;
 const execute_sql_1 = require("../../../execute-sql");
-exports.executeHasBatch = (dependencies) => ({ queryString, params, paramTypes, hashedQueryString, hashedParamString, batchEntity, batchParam, batchValues, batchTypes, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.executeHasBatch = (dependencies) => ({ queryString, params, hashedQueryString, hashedParamString, batchEntity, batchParam, batchValues, }) => __awaiter(void 0, void 0, void 0, function* () {
     const preparedExecuteSql = execute_sql_1.executeSql(dependencies);
+    const paramValues = params || [];
     const result = yield preparedExecuteSql({
         queryString,
-        params: Object.assign(Object.assign({}, params), batchValues),
-        paramTypes: Object.assign(Object.assign({}, paramTypes), batchTypes),
+        params: [...paramValues, ...batchValues],
         multiple: true,
     });
     return {
@@ -27,12 +27,11 @@ exports.executeHasBatch = (dependencies) => ({ queryString, params, paramTypes, 
         batchParam,
     };
 });
-exports.executeNoBatch = (dependencies) => ({ queryString, params, paramTypes, hashedQueryString, hashedParamString, batchEntity, batchParam, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.executeNoBatch = (dependencies) => ({ queryString, params, hashedQueryString, hashedParamString, batchEntity, batchParam, }) => __awaiter(void 0, void 0, void 0, function* () {
     const preparedExecuteSql = execute_sql_1.executeSql(dependencies);
     const result = yield preparedExecuteSql({
         queryString,
         params,
-        paramTypes,
         multiple: true,
     });
     return {
@@ -43,12 +42,11 @@ exports.executeNoBatch = (dependencies) => ({ queryString, params, paramTypes, h
         batchParam,
     };
 });
-exports.executeHasBatchNoParameterization = (dependencies) => ({ queryString, params, paramTypes, hashedQueryString, hashedParamString, batchEntity, batchParam, }) => __awaiter(void 0, void 0, void 0, function* () {
+exports.executeHasBatchNoParameterization = (dependencies) => ({ queryString, params, hashedQueryString, hashedParamString, batchEntity, batchParam, }) => __awaiter(void 0, void 0, void 0, function* () {
     const preparedExecuteSql = execute_sql_1.executeSql(dependencies);
     const result = yield preparedExecuteSql({
         queryString,
         params,
-        paramTypes,
         multiple: true,
     });
     return {

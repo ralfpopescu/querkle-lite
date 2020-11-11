@@ -38,7 +38,7 @@ exports.batchSqlFunction = (dependencies) => (batchedSqls) => __awaiter(void 0, 
     });
 });
 exports.batchSql = (batchDataLoader) => (options) => __awaiter(void 0, void 0, void 0, function* () {
-    const { queryString, params, paramTypes, addToBatch, batchEntity, batchParam, parameterize } = options, rest = __rest(options, ["queryString", "params", "paramTypes", "addToBatch", "batchEntity", "batchParam", "parameterize"]);
+    const { queryString, params, addToBatch, batchEntity, batchParam } = options, rest = __rest(options, ["queryString", "params", "addToBatch", "batchEntity", "batchParam"]);
     if (addToBatch && (batchEntity == null || batchParam == null)) {
         throw new Error(`Added to batch but did not specify batch entity or batch param. Query string: ${queryString}`);
     }
@@ -56,9 +56,7 @@ exports.batchSql = (batchDataLoader) => (options) => __awaiter(void 0, void 0, v
     return batchDataLoader.load(serializer_1.serializeBatchSql(Object.assign({ queryString,
         params,
         addToBatch,
-        paramTypes,
         batchEntity,
-        batchParam,
-        parameterize }, rest)));
+        batchParam }, rest)));
 });
 //# sourceMappingURL=index.js.map

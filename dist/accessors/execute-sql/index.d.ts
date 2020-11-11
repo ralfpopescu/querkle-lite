@@ -1,21 +1,7 @@
-import { StringKeys } from '../index';
-import { ColumnType } from '../../generate-model';
-export declare type Params = {
-    readonly [key: string]: string | number;
-};
-export declare type ParamTypes = {
-    readonly [key: string]: ColumnType;
-};
-export declare type EntityParams<T> = {
-    readonly [key in StringKeys<T>]: string | number;
-};
-export declare type EntityParamTypes<T> = {
-    readonly [key in StringKeys<T>]: ColumnType;
-};
+export declare type Params = Array<string | number | boolean>;
 declare type BaseOptions<T> = {
     readonly queryString: string;
-    readonly params?: EntityParams<T>;
-    readonly paramTypes?: EntityParamTypes<T>;
+    readonly params?: Params;
 };
 declare type OptionsSingle<T> = BaseOptions<T> & {
     readonly multiple?: false;

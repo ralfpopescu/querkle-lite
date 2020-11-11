@@ -1,28 +1,36 @@
-import DataLoader from 'dataloader';
-import type { Pool } from 'pg';
+import DataLoader from "dataloader";
+import type { Pool } from "pg";
 
-import { createPool } from './create-pool';
-import { defaultTranslator, Translator } from './services/db-stringifier';
-import { accessors, batchSql, batchSqlFunction, Dependencies, get, getBatchFunction } from './accessors';
-import { BatchSql } from './accessors/batch-sql';
-import { Get } from './accessors/get/get';
-
-export { createPool } from './create-pool';
+import { createPool, createPoolConnectionString } from "./create-pool";
+import { defaultTranslator, Translator } from "./services/db-stringifier";
+import {
+  accessors,
+  batchSql,
+  batchSqlFunction,
+  Dependencies,
+  get,
+  getBatchFunction,
+} from "./accessors";
+import { BatchSql } from "./accessors/batch-sql";
+import { Get } from "./accessors/get/get";
 
 type PreparedAccessors = {
-  [K in keyof typeof accessors]: ReturnType<(typeof accessors)[K]>;
-}
+  [K in keyof typeof accessors]: ReturnType<typeof accessors[K]>;
+};
 
 export type Querkle = {
   readonly close: () => Promise<void>;
   readonly pool: Pool;
   readonly translator: Translator;
   readonly createPool: typeof createPool;
+  readonly createPoolConnectionString: typeof createPoolConnectionString;
   readonly get: Get;
   readonly batchSql: BatchSql;
 } & PreparedAccessors;
 
-const accessorsWithDependencies = (dependencies: Dependencies): PreparedAccessors => {
+const accessorsWithDependencies = (
+  dependencies: Dependencies
+): PreparedAccessors => {
   const prepared: Partial<PreparedAccessors> = {};
 
   for (const [name, factory] of Object.entries(accessors)) {
@@ -34,10 +42,10 @@ const accessorsWithDependencies = (dependencies: Dependencies): PreparedAccessor
 
 export const initQuerkle = (
   pool: Pool,
-  translator: Translator = defaultTranslator,
+  translator: Translator = defaultTranslator
 ): Querkle => {
   if (!pool) {
-    throw new Error('Pool not provided.');
+    throw new Error("Pool not provided.");
   }
 
   const dependencies = { pool, translator };
@@ -48,6 +56,7 @@ export const initQuerkle = (
     pool,
     translator,
     createPool,
+    createPoolConnectionString,
     get: get(new DataLoader(getBatchFunction(dependencies))),
     batchSql: batchSql(new DataLoader(batchSqlFunction(dependencies))),
     ...preparedAccessors,

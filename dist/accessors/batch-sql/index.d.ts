@@ -1,5 +1,4 @@
 import { SerializedBatchSql } from './serializer';
-import { EntityParams, EntityParamTypes } from '../execute-sql';
 import { Dependencies, Transform, TransformMultiple } from '../index';
 import DataLoader from 'dataloader';
 export declare type BatchIdentifier = string | number;
@@ -9,8 +8,7 @@ declare type BaseOptions<T> = {
     readonly addToBatch?: BatchIdentifier;
     readonly batchEntity?: string;
     readonly batchParam?: keyof T;
-    readonly params?: EntityParams<T>;
-    readonly paramTypes?: EntityParamTypes<T>;
+    readonly params?: Array<any>;
 };
 declare type OptionsSingle<T> = BaseOptions<T> & {
     readonly multiple?: false;

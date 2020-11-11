@@ -7,12 +7,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-const sql = require('mssql');
-const config = require('./config');
+const createPool = require('../create-pool');
 module.exports = (name) => __awaiter(this, void 0, void 0, function* () {
-    const dbConfig = config;
-    delete dbConfig.database;
-    const pool = yield new sql.ConnectionPool(dbConfig);
+    const pool = yield createPool();
     yield pool.connect();
     console.log(`Creating database named ${name}...`);
     yield pool.request().query(`CREATE DATABASE ${name}`);
