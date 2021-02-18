@@ -41,7 +41,7 @@ export const executeOrganizedBatchedSqls = (dependencies: Dependencies) => async
         }
         
         const batchValues = [...addToBatches]
-        const batchString = `(${addToBatches.map((_, i) => `$${i + 1 + (params ? params.length : 0)}`).join(', ')})`
+        const batchString = `(${addToBatches.map((_, i) => `?`).join(', ')})`
 
         const newQueryString = queryString.replace('[BATCH]', batchString);
 

@@ -1,21 +1,24 @@
-import type { Pool } from 'pg';
-
 import { handleErrors } from '../../handle-error';
 import { Params } from '../../accessors/execute-sql';
+import type { Database } from 'sqlite3'
 
 type QueryOptions = {
   readonly queryString: string;
-  readonly params: Params;
-  readonly pool: Pool;
+  params: Params;
+  readonly pool: Database;
 };
 
 export const query = async <T = any>({
   queryString,
   params,
   pool,
-}: QueryOptions) => {
+}: QueryOptions): Promise<any> => {
   if (params) {
-    return pool.query(queryString, params)
+    console.log('queryString', queryString)
+    console.log('params', params)
+    const result = await pool.all(queryString, params)
+    console.log('HERESARESULT', result)
+    return result;
   }
-  return pool.query(queryString)
+  return pool.all(queryString)
 };

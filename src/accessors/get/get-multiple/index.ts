@@ -5,7 +5,7 @@ import { format, query } from '../../../services';
 type GetMultipleAccessorOptions<T> = {
   readonly entity: string;
   readonly where: StringKeys<T>;
-  readonly isIn: ReadonlyArray<IsValue>;
+  readonly isIn: Array<IsValue>;
   readonly parameterize?: boolean;
 };
 
@@ -30,7 +30,7 @@ export const getMultiple = ({
     throw new Error(`'isIn' parameter provided is not an array (entity: ${entity}).`);
   }
   
-  const valueString = isIn.map((_, i) => `$${i + 1}`).join(', ')
+  const valueString = isIn.map((_, i) => `?`).join(', ')
 
   const queryString = `
     SELECT * FROM "${translator.objToRel(entity)}"

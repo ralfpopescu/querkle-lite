@@ -1,6 +1,6 @@
 {
   "name": "querkle",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A powerful query loader for GraphQL + Postgres",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -31,6 +31,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@types/pg": "^7.14.4",
+    "@types/sqlite3": "^3.1.7",
     "atob": "^2.1.2",
     "btoa": "^1.2.1",
     "cryptr": "^6.0.1",
@@ -42,7 +43,8 @@
     "lodash": "^4.17.15",
     "md5": "^2.2.1",
     "mssql": "^6.0.1",
-    "pg": "^8.3.0"
+    "pg": "^8.3.0",
+    "sqlite3": "^5.0.2"
   },
   "devDependencies": {
     "@types/jest": "^26.0.4",

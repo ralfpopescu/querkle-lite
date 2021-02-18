@@ -1,6 +1,7 @@
 import { format, query } from '../../services';
 import { Dependencies, ExcludeGeneratedColumns, IsValue, StringKeys } from '../index';
 import { Translator } from '../../services/db-stringifier';
+import refetch from '../../services/refetch';
 
 type BaseOptions<T> = {
   readonly entity: string;
@@ -25,7 +26,7 @@ type Update = {
 
 const stringifyUpdates = (updatedFields: Object, translator: Translator) => {
   const keys = Object.keys(updatedFields);
-  const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
+  const updates = keys.map((key, i) => `${translator.objToRel(key)} = ?`);
   return updates.join(',');
 };
 
@@ -54,7 +55,6 @@ export const update = ({
   const queryString = `UPDATE "${translator.objToRel(entity)}"
     SET ${stringifyUpdates(input, translator)}
     WHERE ${translator.objToRel(where)} = $${numberOfColumnsToUpdate + 1}
-    RETURNING *;
   `;
 
   const values = Object.values(input)
@@ -69,7 +69,9 @@ export const update = ({
     throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
   }
 
-  return multiple ? format<T>(response, translator) : format<T>(response, translator)[0];
+  const result = refetch<T>(entity, pool, translator)
+
+  return multiple ? result : result[0];
 };
 
 module.exports = { update };

@@ -1,13 +1,13 @@
 import expect from 'expect';
 import _ from 'lodash';
-import { createPool, initQuerkle, Querkle } from '.';
-import { createPoolConnectionString } from './create-pool'
-import type { Pool } from 'pg'
+import { initQuerkle, Querkle } from '.';
+import sqlite3 from 'sqlite3';
 
-import config from './test-setup/config';
 import { ExcludeGeneratedColumns } from './accessors';
 
 require('iconv-lite').encodingExists('CP1252');
+
+let pool;
 
 type ZooRecord = {
   readonly id: number;
@@ -23,7 +23,6 @@ type AnimalRecord = {
 }
 
 let querkle: Querkle;
-let pool: Pool;
 let zooId: number;
 let animalId: number;
 
@@ -33,34 +32,24 @@ const animals = [
   { name: 'Monkey', quantity: 4 },
 ];
 
-var conString = 
-"postgres://querkleuser:querklepass@127.0.0.1:5432/querkledb";
-
-const dbOptions = {
-  host: "querkledb",
-  database: "qdb",
-  user: "quser",
-  password: "qpass"
-}
 
 beforeAll(async done => {
-  console.log(`Creating pool with config: ${config}`);
-  pool = await createPool(dbOptions);
-  console.log('Created pool.');
+  console.log('Creating database...');
+  pool = new sqlite3.Database('./test.db', (err) => {
+    if (err) {
+        console.error(err.message);
+    } else {
+        console.log('Connected to the database.|');
+    }
+});
 
-
-  console.log('Creating uuid extension...');
-  await pool.query(`
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  `);
-  console.log('Created uuid extention.');
 
 
   console.log('Creating table zoo...');
-  await pool.query(`
+  await pool.run(`
     CREATE TABLE IF NOT EXISTS zoo
     (
-      id   uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id  INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
       city text
     );
     
@@ -68,10 +57,10 @@ beforeAll(async done => {
   console.log('Created table zoo.');
 
   console.log('Creating table animal_info...');
-  await pool.query(`
+  await pool.run(`
     CREATE TABLE IF NOT EXISTS animal_info
     (
-      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       description text
     );
     
@@ -79,18 +68,15 @@ beforeAll(async done => {
   console.log('Created table animal_info.');
 
   console.log('Creating table animal...');
-  await pool.query(`
+  await pool.run(`
     CREATE TABLE IF NOT EXISTS animal
     (
-      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
       name           text,
       quantity       integer,
-      animal_info_id uuid REFERENCES animal_info (id),
-      zoo_id         uuid REFERENCES zoo (id)
+      animal_info_id text REFERENCES animal_info (id),
+      zoo_id         INTEGER REFERENCES zoo (id)
     );
-
-    TRUNCATE animal CASCADE;
-    
     `);
   console.log('Created table animal.');
 

@@ -11,11 +11,11 @@ export const snakeToCamel = (str) => str.replace(/_([a-z])/g, g => g[1].toUpperC
 
 export const keyString = input => `(${Object.keys(input).map(key => camelToSnake(key)).join(',')})`;
 
-export const valueString = paramsObj => `(${Object.keys(paramsObj).map((o) => `@${o}`).join(',')})`;
+export const valueString = paramsObj => `(${Object.keys(paramsObj).map((o) => `?`).join(',')})`;
 
 export const multiValueString = inputArray => inputArray
   .map((item, i) => `(${Object.keys(item)
-    .map((o) => `@${o}${i}`).join(',')})`).join(',');
+    .map((o) => `?`).join(',')})`).join(',');
 
 export const stringifyUpdates = (updatedFields: Object, translator: Translator) => {
   const keys = Object.keys(updatedFields);

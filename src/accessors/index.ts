@@ -1,4 +1,4 @@
-import type { Pool } from 'pg';
+import type { Database } from 'sqlite3';
 
 import { insert, insertMany } from './insert';
 import { getAll, getMultiple } from './get';
@@ -19,7 +19,7 @@ export type Transform<T, R> = (record: T) => R;
 export type TransformMultiple<T, R> = (records: ReadonlyArray<T>) => R;
 
 export type Dependencies = {
-  readonly pool: Pool;
+  readonly pool: Database;
   readonly translator: Translator;
 };
 

@@ -1,6 +1,7 @@
 import { Dependencies, ExcludeGeneratedColumns } from '../../index';
 import { dbStringifier, format, query } from '../../../services';
 import { Translator } from '../../../services/db-stringifier';
+import refetch from '../../../services/refetch';
 
 const { wrapSqlInTryCatch } = require('../../../handle-error');
 
@@ -11,7 +12,7 @@ type InsertOptions<T> = {
 
 const createValueString = (input: object) => {
   const values = Object.values(input)
-  return `(${values.map((_, i) => `$${i + 1}`).join(', ')})`
+  return `(${values.map((_) => `?`).join(', ')})`
 }
 
 const createKeyString = (input: object, translator: Translator) => {
@@ -33,7 +34,6 @@ export const insert = ({
   const queryString =`
     INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(input, translator)}
     VALUES ${createValueString(input)}
-    RETURNING *
   `;
 
   try {
@@ -42,7 +42,7 @@ export const insert = ({
       queryString,
       pool,
     });
-    return format<T>(response, translator)[0];
+    
   } catch (e) {
     if (e.message.includes('conflicted with the FOREIGN KEY constraint')) {
       let table = 'table';
@@ -55,4 +55,6 @@ export const insert = ({
     }
     throw new Error(`${entity} insertion failed: ${e.message}`);
   }
+
+  return refetch<T>(entity, pool, translator)[0];
 };

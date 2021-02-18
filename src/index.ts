@@ -1,5 +1,5 @@
 import DataLoader from "dataloader";
-import type { Pool } from "pg";
+import type { Database } from "sqlite3";
 
 import { createPool, createPoolConnectionString } from "./create-pool";
 import { defaultTranslator, Translator } from "./services/db-stringifier";
@@ -14,18 +14,14 @@ import {
 import { BatchSql } from "./accessors/batch-sql";
 import { Get } from "./accessors/get/get";
 
-export { createPool, createPoolConnectionString } from "./create-pool";
-
 type PreparedAccessors = {
   [K in keyof typeof accessors]: ReturnType<typeof accessors[K]>;
 };
 
 export type Querkle = {
   readonly close: () => Promise<void>;
-  readonly pool: Pool;
+  readonly pool: Database;
   readonly translator: Translator;
-  readonly createPool: typeof createPool;
-  readonly createPoolConnectionString: typeof createPoolConnectionString;
   readonly get: Get;
   readonly batchSql: BatchSql;
 } & PreparedAccessors;
@@ -43,7 +39,7 @@ const accessorsWithDependencies = (
 };
 
 export const initQuerkle = (
-  pool: Pool,
+  pool: Database,
   translator: Translator = defaultTranslator
 ): Querkle => {
   if (!pool) {
@@ -54,11 +50,9 @@ export const initQuerkle = (
   const preparedAccessors = accessorsWithDependencies(dependencies);
 
   return {
-    close: () => pool.end(),
+    close: async () => pool.close(),
     pool,
     translator,
-    createPool,
-    createPoolConnectionString,
     get: get(new DataLoader(getBatchFunction(dependencies))),
     batchSql: batchSql(new DataLoader(batchSqlFunction(dependencies))),
     ...preparedAccessors,

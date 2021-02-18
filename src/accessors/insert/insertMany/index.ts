@@ -32,7 +32,7 @@ const createValuesString = (inputArray) => {
   for(let i = 0; i < numberOfInputs; i += 1) {
     arrayToAdd = []
     for(let j = 0; j < lengthOfOneInput; j += 1) {
-      arrayToAdd.push(`$${i * lengthOfOneInput + j + 1}`) 
+      arrayToAdd.push(`?`) 
     }
     strArray.push(arrayToAdd)
   }
