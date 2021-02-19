@@ -2,8 +2,8 @@ import { Dependencies, ExcludeGeneratedColumns } from '../../index';
 import { dbStringifier, format, query } from '../../../services';
 import { Translator } from '../../../services/db-stringifier';
 import refetch from '../../../services/refetch';
+import { v4 as uuidv4 } from 'uuid';
 
-const { wrapSqlInTryCatch } = require('../../../handle-error');
 
 type InsertOptions<T> = {
   readonly entity: string;
@@ -12,12 +12,12 @@ type InsertOptions<T> = {
 
 const createValueString = (input: object) => {
   const values = Object.values(input)
-  return `(${values.map((_) => `?`).join(', ')})`
+  return `(?, ${values.map((_) => `?`).join(', ')})`
 }
 
 const createKeyString = (input: object, translator: Translator) => {
   const keys = Object.keys(input)
-  return `(${keys.map(key => translator.objToRel(key)).join(', ')})`
+  return `(id, ${keys.map(key => translator.objToRel(key)).join(', ')})`
 }
 
 export const insert = ({
@@ -36,9 +36,11 @@ export const insert = ({
     VALUES ${createValueString(input)}
   `;
 
+  const id = uuidv4()
+
   try {
     const response = await query({
-      params: Object.values(input),
+      params: [id, ...Object.values(input)],
       queryString,
       pool,
     });
@@ -56,5 +58,7 @@ export const insert = ({
     throw new Error(`${entity} insertion failed: ${e.message}`);
   }
 
-  return refetch<T>(entity, pool, translator)[0];
+  const generatedIds = [id]
+  console.log('WHTTHCHECK')
+  return refetch<T>(generatedIds, entity, pool, translator)[0];
 };

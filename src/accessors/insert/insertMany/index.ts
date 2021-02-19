@@ -1,27 +1,14 @@
-import sql, { IRow } from 'mssql';
-
 import { Dependencies, ExcludeGeneratedColumns } from '../../index';
 import { format, query } from '../../../services';
+import { v4 as uuidv4 } from 'uuid';
 
 type InsertManyOptions<T> = {
   readonly entity: string;
   readonly inputArray: ReadonlyArray<Partial<ExcludeGeneratedColumns<T>>>;
 };
 
-const createColumn = (paramName, entity, model, translator) => {
-  const paramTypeName = model[entity][paramName].typeName;
-  const { length, precision, scale } = model[entity][paramName].type;
 
-  let suffix = '';
-
-  if (length) suffix = `(${length})`;
-  if (scale) suffix = `(${scale})`;
-  if (precision && scale) suffix = `(${precision}, ${scale})`;
-
-  return `${translator.objToRel(paramName)} ${paramTypeName}${suffix}${model[entity][paramName].nullable ? '' : ' NOT NULL'}`;
-};
-
-const createKeyString = (obj, translator) => `(${Object.keys(obj)
+const createKeyString = (obj, translator) => `(id, ${Object.keys(obj)
   .map(key => translator.objToRel(key)).join(', ')})`
 
 const createValuesString = (inputArray) => {
@@ -36,7 +23,7 @@ const createValuesString = (inputArray) => {
     }
     strArray.push(arrayToAdd)
   }
-  const str = strArray.map(valueArray => `(${valueArray.join(', ')})`).join(', ')
+  const str = strArray.map(valueArray => `(?, ${valueArray.join(', ')})`).join(', ')
   return str
 }
 
@@ -67,9 +54,9 @@ export const insertMany = ({
   const queryString = `
   INSERT INTO ${translator.objToRel(entity)}${createKeyString(inputArray[0], translator)} 
   VALUES ${createValuesString(inputArray)}
-  RETURNING *`
+`
 
-  const params = inputArray.reduce((acc, curr) => [...acc, ...Object.values(curr)], [])
+  const params = inputArray.reduce((acc, curr) => [...acc, uuidv4(), ...Object.values(curr)], [])
 
   const response = await query({ queryString, params, pool })
 

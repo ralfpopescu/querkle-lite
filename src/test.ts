@@ -2,6 +2,7 @@ import expect from 'expect';
 import _ from 'lodash';
 import { initQuerkle, Querkle } from '.';
 import sqlite3 from 'sqlite3';
+import { open } from 'sqlite'
 
 import { ExcludeGeneratedColumns } from './accessors';
 
@@ -35,21 +36,15 @@ const animals = [
 
 beforeAll(async done => {
   console.log('Creating database...');
-  pool = new sqlite3.Database('./test.db', (err) => {
-    if (err) {
-        console.error(err.message);
-    } else {
-        console.log('Connected to the database.|');
-    }
-});
-
+  pool = await open({ filename: './test.db', driver: sqlite3.Database });
+  console.log('doesthsievenchange?')
 
 
   console.log('Creating table zoo...');
   await pool.run(`
     CREATE TABLE IF NOT EXISTS zoo
     (
-      id  INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
+      id  text  NOT NULL PRIMARY KEY,
       city text
     );
     
@@ -60,7 +55,7 @@ beforeAll(async done => {
   await pool.run(`
     CREATE TABLE IF NOT EXISTS animal_info
     (
-      id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+      id text NOT NULL PRIMARY KEY,
       description text
     );
     
@@ -71,11 +66,11 @@ beforeAll(async done => {
   await pool.run(`
     CREATE TABLE IF NOT EXISTS animal
     (
-      id INTEGER  NOT NULL PRIMARY KEY AUTOINCREMENT,
+      id text NOT NULL PRIMARY KEY,
       name           text,
       quantity       integer,
       animal_info_id text REFERENCES animal_info (id),
-      zoo_id         INTEGER REFERENCES zoo (id)
+      zoo_id         text REFERENCES zoo (id)
     );
     `);
   console.log('Created table animal.');
@@ -87,11 +82,11 @@ beforeAll(async done => {
 
 afterAll(async () => {
   if(pool) {
-    await pool.end();
+    await pool.close();
   }
 });
 
-const nonexistantUuid = 'f216668e-883e-430f-bb84-7e50ea7629e1'
+const nonexistantUuid = 'DOESNTMATTERSINCEJUSTTEXT'
 
 test('should succeed: insert zoo', async () => {
   const response = await querkle.insert<ZooRecord>({ entity: 'zoo', input: { city: 'Atlanta' } });

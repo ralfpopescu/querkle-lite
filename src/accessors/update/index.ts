@@ -54,7 +54,7 @@ export const update = ({
 
   const queryString = `UPDATE "${translator.objToRel(entity)}"
     SET ${stringifyUpdates(input, translator)}
-    WHERE ${translator.objToRel(where)} = $${numberOfColumnsToUpdate + 1}
+    WHERE ${translator.objToRel(where)} = ?
   `;
 
   const values = Object.values(input)
@@ -69,7 +69,7 @@ export const update = ({
     throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
   }
 
-  const result = refetch<T>(entity, pool, translator)
+  const result = refetch<T>([is], entity, pool, translator)
 
   return multiple ? result : result[0];
 };
