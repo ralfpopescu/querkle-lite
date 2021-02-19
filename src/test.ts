@@ -230,7 +230,7 @@ test('should throw: insert a non-defined entity', async () => {
   try {
     await querkle.insert({ entity: 'critter', input: { zooId, name: 'Squirrel' } });
   } catch (e) {
-    expect(e.message).toMatch('critter insertion failed: relation \"critter\" does not exist');
+    expect(e.message).toMatch('critter insertion failed: SQLITE_ERROR: no such table: critter');
   }
 });
 
