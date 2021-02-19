@@ -14,13 +14,9 @@ export const query = async <T = any>({
   pool,
 }: QueryOptions): Promise<any> => {
   if (params) {
-    console.log('queryString', queryString)
-    console.log('params', params)
     const result = await pool.all(queryString, params)
-    console.log('HERESARESULT', result)
     return result;
   }
   const noParamsResult = await pool.all(queryString)
-  console.log('noParamsResult', noParamsResult)
   return noParamsResult
 };

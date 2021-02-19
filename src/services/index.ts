@@ -12,8 +12,6 @@ export const format = <T>(rows: Array<any>, translator: Translator): ReadonlyArr
 
   // The TS workaround `as unknown` is needed because there's no TS snake to
   // camel conversion.
-  console.log('rows preformat', rows)
-  console.log('rows formated', rows.map(row => dbStringifierFormat(row, translator.relToObj)))
   return rows.map(row => dbStringifierFormat(row, translator.relToObj)) as unknown as ReadonlyArray<T>;
 };
 

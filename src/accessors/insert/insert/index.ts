@@ -60,6 +60,5 @@ export const insert = ({
 
   const generatedIds = [id]
   const refetched = await refetch<T>(generatedIds, entity, pool, translator)
-  console.log('refetched -', generatedIds, "---", refetched)
   return refetched[0];
 };

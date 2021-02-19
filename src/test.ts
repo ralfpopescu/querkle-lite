@@ -40,8 +40,6 @@ beforeAll(async done => {
   fs.unlinkSync(dbPath)
   console.log('Creating database...');
   pool = await open({ filename: dbPath, driver: sqlite3.Database });
-  console.log('doesthsievenchange?')
-
 
   console.log('Creating table zoo...');
   await pool.run(`
@@ -77,7 +75,6 @@ beforeAll(async done => {
     );
     `);
   console.log('Created table animal.');
-  console.log('sanity')
 
   querkle = initQuerkle(pool);
 

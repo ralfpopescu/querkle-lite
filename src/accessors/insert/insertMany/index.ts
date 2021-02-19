@@ -59,17 +59,10 @@ export const insertMany = ({
 
   const generatedIds = inputArray.map(() => uuidv4())
 
-  console.log('inputArrayinputArray', inputArray)
   const params = inputArray.reduce((acc, curr, i) => [...acc, generatedIds[i], ...Object.values(curr)], [])
 
-  console.log('queryStringqueryString', queryString)
-  console.log('paramsparams', params)
-
-  const response = await query({ queryString, params, pool })
-
-  console.log('responseresponse', response)
+  await query({ queryString, params, pool })
 
   const refetched = await refetch<T>(generatedIds, entity, pool, translator)
-  console.log('refetched -', generatedIds, "---", refetched)
   return refetched;
 };
