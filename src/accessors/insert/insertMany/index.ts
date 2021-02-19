@@ -1,6 +1,7 @@
 import { Dependencies, ExcludeGeneratedColumns } from '../../index';
 import { format, query } from '../../../services';
 import { v4 as uuidv4 } from 'uuid';
+import refetch from '../../../services/refetch';
 
 type InsertManyOptions<T> = {
   readonly entity: string;
@@ -52,14 +53,23 @@ export const insertMany = ({
   }
 
   const queryString = `
-  INSERT INTO ${translator.objToRel(entity)}${createKeyString(inputArray[0], translator)} 
+  INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(inputArray[0], translator)} 
   VALUES ${createValuesString(inputArray)}
 `
 
-  const params = inputArray.reduce((acc, curr) => [...acc, uuidv4(), ...Object.values(curr)], [])
+  const generatedIds = inputArray.map(() => uuidv4())
+
+  console.log('inputArrayinputArray', inputArray)
+  const params = inputArray.reduce((acc, curr, i) => [...acc, generatedIds[i], ...Object.values(curr)], [])
+
+  console.log('queryStringqueryString', queryString)
+  console.log('paramsparams', params)
 
   const response = await query({ queryString, params, pool })
 
-  return format<T>(response, translator);
+  console.log('responseresponse', response)
 
+  const refetched = await refetch<T>(generatedIds, entity, pool, translator)
+  console.log('refetched -', generatedIds, "---", refetched)
+  return refetched;
 };
