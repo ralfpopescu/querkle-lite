@@ -102,92 +102,92 @@ test('should succeed: insert zoo', async () => {
   }
 });
 
-// test('should succeed: get zoo city', async () => {
-//   const response = await querkle.get<ZooRecord>({
-//     entity: 'zoo', where: 'id', is: zooId, returnField: 'city',
-//   });
-//   expect(response).toEqual('Atlanta');
-// });
+test('should succeed: get zoo city', async () => {
+  const response = await querkle.get<ZooRecord>({
+    entity: 'zoo', where: 'id', is: zooId, returnField: 'city',
+  });
+  expect(response).toEqual('Atlanta');
+});
 
-// test('should succeed: get zoo city that does not exist should return null', async () => {
-//   const response = await querkle.get<ZooRecord>({
-//     entity: 'zoo', where: 'id', is: nonexistantUuid,
-//   });
-//   expect(response).toEqual(null);
-// });
+test('should succeed: get zoo city that does not exist should return null', async () => {
+  const response = await querkle.get<ZooRecord>({
+    entity: 'zoo', where: 'id', is: nonexistantUuid,
+  });
+  expect(response).toEqual(null);
+});
 
-// test('should succeed: null result should still be transformed', async () => {
-//   const response = await querkle.get<ZooRecord>({
-//     entity: 'zoo', where: 'id', is: nonexistantUuid, 
-//     transform: result => (result === null ? 'true' : 'false'),
-//   });
-//   expect(response).toEqual('true');
-// });
+test('should succeed: null result should still be transformed', async () => {
+  const response = await querkle.get<ZooRecord>({
+    entity: 'zoo', where: 'id', is: nonexistantUuid, 
+    transform: result => (result === null ? 'true' : 'false'),
+  });
+  expect(response).toEqual('true');
+});
 
-// test('should succeed: null results should still be transformed', async () => {
-//   const response = await querkle.get<ZooRecord>({
-//     entity: 'zoo',
-//     where: 'id',
-//     is: nonexistantUuid,
-//     multiple: true,
-//     transformMultiple: results => (results.length === 0 ? 'true' : 'false'),
-//   });
-//   expect(response).toEqual('true');
-// });
+test('should succeed: null results should still be transformed', async () => {
+  const response = await querkle.get<ZooRecord>({
+    entity: 'zoo',
+    where: 'id',
+    is: nonexistantUuid,
+    multiple: true,
+    transformMultiple: results => (results.length === 0 ? 'true' : 'false'),
+  });
+  expect(response).toEqual('true');
+});
 
-// test('should succeed: get with transform', async () => {
-//   const response = await querkle.get<ZooRecord>({
-//     entity: 'zoo', where: 'id', is: zooId, transform: (result) => ({ city: result.city.toUpperCase() }),
-//   });
-//   expect(response.city).toEqual('ATLANTA');
-// });
+test('should succeed: get with transform', async () => {
+  const response = await querkle.get<ZooRecord>({
+    entity: 'zoo', where: 'id', is: zooId, transform: (result) => ({ city: result.city.toUpperCase() }),
+  });
+  expect(response.city).toEqual('ATLANTA');
+});
 
 
-// test('should succeed: update zoo', async () => {
-//   const response = await querkle.update<ZooRecord>({
-//     entity: 'zoo', input: { city: 'Boston' }, where: 'id', is: zooId,
-//   });
+test('should succeed: update zoo', async () => {
+  const response = await querkle.update<ZooRecord>({
+    entity: 'zoo', input: { city: 'Boston' }, where: 'id', is: zooId,
+  });
 
-//   expect(response.city).toEqual('Boston');
-// });
+  expect(response.city).toEqual('Boston');
+});
 
-// test('should succeed: insert animal referencing zoo', async () => {
-//   const response = await querkle.insert<AnimalRecord>({
-//     entity: 'animal',
-//     input: { zooId, name: 'Tiger', quantity: 2 },
-//   });
+test('should succeed: insert animal referencing zoo', async () => {
+  const response = await querkle.insert<AnimalRecord>({
+    entity: 'animal',
+    input: { zooId, name: 'Tiger', quantity: 2 },
+  });
 
-//   expect(response.zooId).toEqual(zooId);
-//   expect(response.name).toEqual('Tiger');
-//   expect(response.quantity).toEqual(2);
+  expect(response.zooId).toEqual(zooId);
+  expect(response.name).toEqual('Tiger');
+  expect(response.quantity).toEqual(2);
 
-//   animalId = response.id;
-// });
+  animalId = response.id;
+});
 
-// test('should succeed: delete Tiger', async () => {
-//   const response = await querkle.remove<AnimalRecord>({ entity: 'animal', where: 'id', is: animalId });
+test('should succeed: delete Tiger', async () => {
+  const response = await querkle.remove<AnimalRecord>({ entity: 'animal', where: 'id', is: animalId });
 
-//   expect(response.zooId).toEqual(zooId);
-//   expect(response.name).toEqual('Tiger');
-//   expect(response.quantity).toEqual(2);
-// });
+  expect(response.zooId).toEqual(zooId);
+  expect(response.name).toEqual('Tiger');
+  expect(response.quantity).toEqual(2);
+});
 
-// let insertedAnimalsIds = []
+let insertedAnimalsIds = []
 
-// test('should succeed: insert many animals', async () => {
-//   const response = await querkle.insertMany<AnimalRecord>({
-//     entity: 'animal',
-//     inputArray: animals.map(animal => ({ ...animal, zooId })),
-//   });
-//   insertedAnimalsIds = response.map(insertedAnimal => insertedAnimal.id)
-//   expect(response.length).toBe(3);
-// });
+test('should succeed: insert many animals', async () => {
+  const response = await querkle.insertMany<AnimalRecord>({
+    entity: 'animal',
+    inputArray: animals.map(animal => ({ ...animal, zooId })),
+  });
+  insertedAnimalsIds = response.map(insertedAnimal => insertedAnimal.id)
+  expect(response.length).toBe(3);
+});
 
-// test('should succeed: get all animals', async () => {
-//   const response = await querkle.getAll<AnimalRecord>({ entity: 'animal' });
+test('should succeed: get all animals', async () => {
+  const response = await querkle.getAll<AnimalRecord>({ entity: 'animal' });
 
-//   expect(response.length).toBe(3);
-// });
+  expect(response.length).toBe(3);
+});
 
 // test('should succeed: get multiple animals', async () => {
 //   const response = await querkle.getMultiple<AnimalRecord>({ entity: 'animal', where: 'id', isIn: insertedAnimalsIds });

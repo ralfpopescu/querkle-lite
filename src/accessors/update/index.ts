@@ -59,17 +59,17 @@ export const update = ({
 
   const values = Object.values(input)
 
-  const response = await query({
+  await query({
     params: [...values, is],
     queryString,
     pool,
   });
 
-  if (response.rows.length === 0) {
+  const result = await refetch<T>([is], entity, pool, translator)
+
+  if(result.length === 0) {
     throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
   }
-
-  const result = refetch<T>([is], entity, pool, translator)
 
   return multiple ? result : result[0];
 };

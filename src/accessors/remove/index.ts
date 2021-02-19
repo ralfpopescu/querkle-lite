@@ -1,5 +1,6 @@
 import { format, query } from '../../services';
 import { Dependencies, IsValue, StringKeys } from '../index';
+import refetch from '../../services/refetch';
 
 type BaseOptions<T> = {
   readonly entity: string;
@@ -44,15 +45,22 @@ export const remove = ({
 
   const queryString = `
     DELETE FROM "${translator.objToRel(entity)}"
-    WHERE ${translator.objToRel(where)} = $1
-    RETURNING *;
+    WHERE ${translator.objToRel(where)} = ?;
   `;
 
-  const response = await query({
+  const result = await refetch<T>([is], entity, pool, translator)
+
+  if(result.length === 0) {
+    throw new Error(`No delete made for ${entity} where ${where} is ${is}: row does not exist.`);
+  }
+
+  await query({
     params: [is],
     queryString,
     pool,
   });
 
-  return multiple ? format<T>(response, translator) : format<T>(response, translator)[0];
+  
+
+  return multiple ? result : result[0];
 };
