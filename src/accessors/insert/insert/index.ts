@@ -59,6 +59,7 @@ export const insert = ({
   }
 
   const generatedIds = [id]
-  console.log('WHTTHCHECK')
-  return refetch<T>(generatedIds, entity, pool, translator)[0];
+  const refetched = await refetch<T>(generatedIds, entity, pool, translator)
+  console.log('refetched -', generatedIds, "---", refetched)
+  return refetched[0];
 };

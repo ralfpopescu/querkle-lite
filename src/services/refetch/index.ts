@@ -2,19 +2,17 @@ import { format, query } from '../../services';
 import type { Database } from 'sqlite3'
 
 const refetch = async <T>(generatedIds: Array<string>, entity: string, pool: Database, translator: any) => {
-    console.log('CMONREFETCH')
-    const inString = `(${generatedIds.map(id => `'${id}'`).join(', ')})`
-    console.log('inStringinString', inString)
-    const queryString = `SELECT * FROM "${translator.objToRel(entity)}" WHERE id IN ${inString}`
+    const inString = `(${generatedIds.map(() => '?').join(', ')})`
+    const queryString = `SELECT * FROM "${translator.objToRel(entity)}" WHERE id IN ${inString};`
     console.log('requeryString', queryString)
 
     const response = await query({
       queryString,
       pool,
-      params: null,
+      params: generatedIds,
     });
 
-    console.log('refetchresponse', response)
+    console.log('refetchresponse -', queryString, "---", response)
   
     return format<T>(response, translator);
 }
