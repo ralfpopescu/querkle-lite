@@ -42,7 +42,7 @@ exports.executeOrganizedBatchedSqls = (dependencies) => ({ organizedBatchedSqls 
                 });
             }
             const batchValues = [...addToBatches];
-            const batchString = `(${addToBatches.map((_, i) => `$${i + 1 + (params ? params.length : 0)}`).join(', ')})`;
+            const batchString = `(${addToBatches.map((_, i) => `?`).join(', ')})`;
             const newQueryString = queryString.replace('[BATCH]', batchString);
             return execute_1.executeHasBatch(dependencies)({
                 queryString: newQueryString,

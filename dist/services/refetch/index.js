@@ -9,15 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.query = void 0;
-exports.query = ({ queryString, params, pool, }) => __awaiter(void 0, void 0, void 0, function* () {
-    if (params) {
-        console.log('queryString', queryString);
-        console.log('params', params);
-        const result = yield pool.all(queryString, params);
-        console.log('HERESARESULT', result);
-        return result;
-    }
-    return pool.all(queryString);
+const services_1 = require("../../services");
+const refetch = (generatedIds, entity, pool, translator) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log('CMONREFETCH');
+    const inString = `(${generatedIds.join(', ')})`;
+    console.log('inStringinString', inString);
+    const queryString = `SELECT * FROM "${translator.objToRel(entity)}" WHERE IN ${inString}`;
+    const response = yield services_1.query({
+        queryString,
+        pool,
+        params: null,
+    });
+    console.log('refetchresponse', response);
+    return services_1.format(response, translator);
 });
+exports.default = refetch;
 //# sourceMappingURL=index.js.map

@@ -1,4 +1,5 @@
-import type { Pool } from 'pg';
+/// <reference types="./vendor-typings/sqlite3" />
+import type { Database } from 'sqlite3';
 import { Translator } from '../services/db-stringifier';
 export { get, getBatchFunction } from './get';
 export { batchSql, batchSqlFunction } from './batch-sql';
@@ -8,7 +9,7 @@ export declare type StringKeys<T> = Extract<keyof T, string>;
 export declare type Transform<T, R> = (record: T) => R;
 export declare type TransformMultiple<T, R> = (records: ReadonlyArray<T>) => R;
 export declare type Dependencies = {
-    readonly pool: Pool;
+    readonly pool: Database;
     readonly translator: Translator;
 };
 export declare type Accessor<O, R> = (options: O) => R;
@@ -19,7 +20,7 @@ export declare const accessors: {
     getMultiple: ({ pool, translator, }: Dependencies) => <T_1>({ entity, where, isIn, }: {
         readonly entity: string;
         readonly where: Extract<keyof T_1, string>;
-        readonly isIn: readonly (string | number)[];
+        readonly isIn: (string | number)[];
         readonly parameterize?: boolean;
     }) => Promise<readonly T_1[]>;
     executeSql: ({ pool, translator, }: {
@@ -42,7 +43,7 @@ export declare const accessors: {
     insert: ({ pool, translator, }: Dependencies) => <T_4>({ entity, input }: {
         readonly entity: string;
         readonly input: Pick<T_4, Exclude<keyof T_4, "id" | "udpatedAt" | "createdAt">>;
-    }) => Promise<T_4>;
+    }) => Promise<any>;
     insertMany: ({ pool, translator, }: Dependencies) => <T_5>({ entity, inputArray, }: {
         readonly entity: string;
         readonly inputArray: readonly Partial<Pick<T_5, Exclude<keyof T_5, "id" | "udpatedAt" | "createdAt">>>[];

@@ -8,12 +8,16 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.update = void 0;
 const services_1 = require("../../services");
+const refetch_1 = __importDefault(require("../../services/refetch"));
 const stringifyUpdates = (updatedFields, translator) => {
     const keys = Object.keys(updatedFields);
-    const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
+    const updates = keys.map((key, i) => `${translator.objToRel(key)} = ?`);
     return updates.join(',');
 };
 exports.update = ({ pool, translator, }) => ({ entity, input, where, is, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
@@ -29,8 +33,7 @@ exports.update = ({ pool, translator, }) => ({ entity, input, where, is, multipl
     const numberOfColumnsToUpdate = Object.keys(input).length;
     const queryString = `UPDATE "${translator.objToRel(entity)}"
     SET ${stringifyUpdates(input, translator)}
-    WHERE ${translator.objToRel(where)} = $${numberOfColumnsToUpdate + 1}
-    RETURNING *;
+    WHERE ${translator.objToRel(where)} = ?
   `;
     const values = Object.values(input);
     const response = yield services_1.query({
@@ -41,7 +44,8 @@ exports.update = ({ pool, translator, }) => ({ entity, input, where, is, multipl
     if (response.rows.length === 0) {
         throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
     }
-    return multiple ? services_1.format(response, translator) : services_1.format(response, translator)[0];
+    const result = refetch_1.default([is], entity, pool, translator);
+    return multiple ? result : result[0];
 });
 module.exports = { update: exports.update };
 //# sourceMappingURL=index.js.map

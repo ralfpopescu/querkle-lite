@@ -5,10 +5,10 @@ exports.defaultTranslator = exports.format = exports.stringifyUpdates = exports.
 exports.camelToSnake = (str) => str.split(/(?=[A-Z])/).join('_').toLowerCase();
 exports.snakeToCamel = (str) => str.replace(/_([a-z])/g, g => g[1].toUpperCase());
 exports.keyString = input => `(${Object.keys(input).map(key => exports.camelToSnake(key)).join(',')})`;
-exports.valueString = paramsObj => `(${Object.keys(paramsObj).map((o) => `@${o}`).join(',')})`;
+exports.valueString = paramsObj => `(${Object.keys(paramsObj).map((o) => `?`).join(',')})`;
 exports.multiValueString = inputArray => inputArray
     .map((item, i) => `(${Object.keys(item)
-    .map((o) => `@${o}${i}`).join(',')})`).join(',');
+    .map((o) => `?`).join(',')})`).join(',');
 exports.stringifyUpdates = (updatedFields, translator) => {
     const keys = Object.keys(updatedFields);
     const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);

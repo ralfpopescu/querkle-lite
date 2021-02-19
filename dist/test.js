@@ -15,10 +15,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const expect_1 = __importDefault(require("expect"));
 const lodash_1 = __importDefault(require("lodash"));
 const _1 = require(".");
-const config_1 = __importDefault(require("./test-setup/config"));
+const sqlite3_1 = __importDefault(require("sqlite3"));
+const sqlite_1 = require("sqlite");
 require('iconv-lite').encodingExists('CP1252');
-let querkle;
 let pool;
+let querkle;
 let zooId;
 let animalId;
 const animals = [
@@ -26,55 +27,40 @@ const animals = [
     { name: 'Penguin', quantity: 10 },
     { name: 'Monkey', quantity: 4 },
 ];
-var conString = "postgres://querkleuser:querklepass@127.0.0.1:5432/querkledb";
-const dbOptions = {
-    host: "querkledb",
-    database: "qdb",
-    user: "quser",
-    password: "qpass"
-};
 beforeAll((done) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(`Creating pool with config: ${config_1.default}`);
-    pool = yield _1.createPool(dbOptions);
-    console.log('Created pool.');
-    console.log('Creating uuid extension...');
-    yield pool.query(`
-  CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-  `);
-    console.log('Created uuid extention.');
+    console.log('Creating database...');
+    pool = yield sqlite_1.open({ filename: './test.db', driver: sqlite3_1.default.Database });
+    console.log('doesthsievenchange?');
     console.log('Creating table zoo...');
-    yield pool.query(`
+    yield pool.run(`
     CREATE TABLE IF NOT EXISTS zoo
     (
-      id   uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id  text  NOT NULL PRIMARY KEY,
       city text
     );
     
     `);
     console.log('Created table zoo.');
     console.log('Creating table animal_info...');
-    yield pool.query(`
+    yield pool.run(`
     CREATE TABLE IF NOT EXISTS animal_info
     (
-      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id text NOT NULL PRIMARY KEY,
       description text
     );
     
     `);
     console.log('Created table animal_info.');
     console.log('Creating table animal...');
-    yield pool.query(`
+    yield pool.run(`
     CREATE TABLE IF NOT EXISTS animal
     (
-      id uuid PRIMARY KEY DEFAULT uuid_generate_v4 (),
+      id text NOT NULL PRIMARY KEY,
       name           text,
       quantity       integer,
-      animal_info_id uuid REFERENCES animal_info (id),
-      zoo_id         uuid REFERENCES zoo (id)
+      animal_info_id text REFERENCES animal_info (id),
+      zoo_id         text REFERENCES zoo (id)
     );
-
-    TRUNCATE animal CASCADE;
-    
     `);
     console.log('Created table animal.');
     querkle = _1.initQuerkle(pool);
@@ -82,10 +68,10 @@ beforeAll((done) => __awaiter(void 0, void 0, void 0, function* () {
 }));
 afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
     if (pool) {
-        yield pool.end();
+        yield pool.close();
     }
 }));
-const nonexistantUuid = 'f216668e-883e-430f-bb84-7e50ea7629e1';
+const nonexistantUuid = 'DOESNTMATTERSINCEJUSTTEXT';
 test('should succeed: insert zoo', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insert({ entity: 'zoo', input: { city: 'Atlanta' } });
     expect_1.default(response.id).toBeDefined();

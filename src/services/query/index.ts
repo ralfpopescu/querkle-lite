@@ -20,5 +20,7 @@ export const query = async <T = any>({
     console.log('HERESARESULT', result)
     return result;
   }
-  return pool.all(queryString)
+  const noParamsResult = await pool.all(queryString)
+  console.log('noParamsResult', noParamsResult)
+  return noParamsResult
 };

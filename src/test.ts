@@ -36,7 +36,7 @@ const animals = [
 
 beforeAll(async done => {
   console.log('Creating database...');
-  pool = await open({ filename: './test.db', driver: sqlite3.Database });
+  pool = await open({ filename: './test2.db', driver: sqlite3.Database });
   console.log('doesthsievenchange?')
 
 
@@ -74,8 +74,13 @@ beforeAll(async done => {
     );
     `);
   console.log('Created table animal.');
+  console.log('sanity')
 
   querkle = initQuerkle(pool);
+
+  const response = await querkle.insert<ZooRecord>({ entity: 'zoo', input: { city: 'Atlanta' } });
+
+  console.log('sanity2', response)
   done();
 
 });

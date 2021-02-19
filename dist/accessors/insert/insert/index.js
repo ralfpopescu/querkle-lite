@@ -8,17 +8,21 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insert = void 0;
 const services_1 = require("../../../services");
-const { wrapSqlInTryCatch } = require('../../../handle-error');
+const refetch_1 = __importDefault(require("../../../services/refetch"));
+const uuid_1 = require("uuid");
 const createValueString = (input) => {
     const values = Object.values(input);
-    return `(${values.map((_, i) => `$${i + 1}`).join(', ')})`;
+    return `(?, ${values.map((_) => `?`).join(', ')})`;
 };
 const createKeyString = (input, translator) => {
     const keys = Object.keys(input);
-    return `(${keys.map(key => translator.objToRel(key)).join(', ')})`;
+    return `(id, ${keys.map(key => translator.objToRel(key)).join(', ')})`;
 };
 exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(void 0, void 0, void 0, function* () {
     if (entity === null || entity === undefined) {
@@ -30,15 +34,14 @@ exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(voi
     const queryString = `
     INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(input, translator)}
     VALUES ${createValueString(input)}
-    RETURNING *
   `;
+    const id = uuid_1.v4();
     try {
         const response = yield services_1.query({
-            params: Object.values(input),
+            params: [id, ...Object.values(input)],
             queryString,
             pool,
         });
-        return services_1.format(response, translator)[0];
     }
     catch (e) {
         if (e.message.includes('conflicted with the FOREIGN KEY constraint')) {
@@ -53,5 +56,8 @@ exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(voi
         }
         throw new Error(`${entity} insertion failed: ${e.message}`);
     }
+    const generatedIds = [id];
+    console.log('WHTTHCHECK');
+    return refetch_1.default(generatedIds, entity, pool, translator)[0];
 });
 //# sourceMappingURL=index.js.map

@@ -24,7 +24,7 @@ exports.getMultiple = ({ pool, translator, }) => ({ entity, where, isIn, }) => _
     if (!Array.isArray(isIn)) {
         throw new Error(`'isIn' parameter provided is not an array (entity: ${entity}).`);
     }
-    const valueString = isIn.map((_, i) => `$${i + 1}`).join(', ');
+    const valueString = isIn.map((_, i) => `?`).join(', ');
     const queryString = `
     SELECT * FROM "${translator.objToRel(entity)}"
     WHERE ${translator.objToRel(where)} IN (${valueString});
