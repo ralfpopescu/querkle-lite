@@ -12,12 +12,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.query = void 0;
 exports.query = ({ queryString, params, pool, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (params) {
-        console.log('queryString', queryString);
-        console.log('params', params);
         const result = yield pool.all(queryString, params);
-        console.log('HERESARESULT', result);
         return result;
     }
-    return pool.all(queryString);
+    const noParamsResult = yield pool.all(queryString);
+    return noParamsResult;
 });
 //# sourceMappingURL=index.js.map

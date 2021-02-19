@@ -8,10 +8,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.insertMany = void 0;
 const services_1 = require("../../../services");
 const uuid_1 = require("uuid");
+const refetch_1 = __importDefault(require("../../../services/refetch"));
 const createKeyString = (obj, translator) => `(id, ${Object.keys(obj)
     .map(key => translator.objToRel(key)).join(', ')})`;
 const createValuesString = (inputArray) => {
@@ -45,11 +49,13 @@ exports.insertMany = ({ pool, translator, }) => ({ entity, inputArray, }) => __a
         throw new Error(`All elements of input array need to have the same keys (entity: ${entity}).`);
     }
     const queryString = `
-  INSERT INTO ${translator.objToRel(entity)}${createKeyString(inputArray[0], translator)} 
+  INSERT INTO "${translator.objToRel(entity)}" ${createKeyString(inputArray[0], translator)} 
   VALUES ${createValuesString(inputArray)}
 `;
-    const params = inputArray.reduce((acc, curr) => [...acc, uuid_1.v4(), ...Object.values(curr)], []);
-    const response = yield services_1.query({ queryString, params, pool });
-    return services_1.format(response, translator);
+    const generatedIds = inputArray.map(() => uuid_1.v4());
+    const params = inputArray.reduce((acc, curr, i) => [...acc, generatedIds[i], ...Object.values(curr)], []);
+    yield services_1.query({ queryString, params, pool });
+    const refetched = yield refetch_1.default(generatedIds, entity, pool, translator);
+    return refetched;
 });
 //# sourceMappingURL=index.js.map

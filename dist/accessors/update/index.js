@@ -36,15 +36,15 @@ exports.update = ({ pool, translator, }) => ({ entity, input, where, is, multipl
     WHERE ${translator.objToRel(where)} = ?
   `;
     const values = Object.values(input);
-    const response = yield services_1.query({
+    yield services_1.query({
         params: [...values, is],
         queryString,
         pool,
     });
-    if (response.rows.length === 0) {
+    const result = yield refetch_1.default([is], entity, pool, translator);
+    if (result.length === 0) {
         throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
     }
-    const result = refetch_1.default([is], entity, pool, translator);
     return multiple ? result : result[0];
 });
 module.exports = { update: exports.update };

@@ -17,6 +17,7 @@ const lodash_1 = __importDefault(require("lodash"));
 const _1 = require(".");
 const sqlite3_1 = __importDefault(require("sqlite3"));
 const sqlite_1 = require("sqlite");
+const fs = require('fs');
 require('iconv-lite').encodingExists('CP1252');
 let pool;
 let querkle;
@@ -28,9 +29,10 @@ const animals = [
     { name: 'Monkey', quantity: 4 },
 ];
 beforeAll((done) => __awaiter(void 0, void 0, void 0, function* () {
+    const dbPath = './test2.db';
+    fs.unlinkSync(dbPath);
     console.log('Creating database...');
-    pool = yield sqlite_1.open({ filename: './test.db', driver: sqlite3_1.default.Database });
-    console.log('doesthsievenchange?');
+    pool = yield sqlite_1.open({ filename: dbPath, driver: sqlite3_1.default.Database });
     console.log('Creating table zoo...');
     yield pool.run(`
     CREATE TABLE IF NOT EXISTS zoo
@@ -74,9 +76,12 @@ afterAll(() => __awaiter(void 0, void 0, void 0, function* () {
 const nonexistantUuid = 'DOESNTMATTERSINCEJUSTTEXT';
 test('should succeed: insert zoo', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insert({ entity: 'zoo', input: { city: 'Atlanta' } });
-    expect_1.default(response.id).toBeDefined();
-    expect_1.default(response.city).toEqual('Atlanta');
-    zooId = response.id;
+    expect_1.default(response).toBeDefined();
+    if (response !== null && response !== undefined) {
+        expect_1.default(response.id).toBeDefined();
+        expect_1.default(response.city).toEqual('Atlanta');
+        zooId = response.id;
+    }
 }));
 test('should succeed: get zoo city', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.get({
@@ -182,7 +187,7 @@ test('should throw: insert a non-defined entity', () => __awaiter(void 0, void 0
         yield querkle.insert({ entity: 'critter', input: { zooId, name: 'Squirrel' } });
     }
     catch (e) {
-        expect_1.default(e.message).toMatch('critter insertion failed: relation \"critter\" does not exist');
+        expect_1.default(e.message).toMatch('critter insertion failed: SQLITE_ERROR: no such table: critter');
     }
 }));
 test('should throw: inputs are not equal', () => __awaiter(void 0, void 0, void 0, function* () {

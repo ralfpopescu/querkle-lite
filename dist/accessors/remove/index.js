@@ -8,9 +8,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.remove = void 0;
 const services_1 = require("../../services");
+const refetch_1 = __importDefault(require("../../services/refetch"));
 exports.remove = ({ pool, translator, }) => ({ entity, where, is, multiple, }) => __awaiter(void 0, void 0, void 0, function* () {
     if (entity === null || entity === undefined) {
         throw new Error('entity was not provided for remove operation.');
@@ -24,14 +28,17 @@ exports.remove = ({ pool, translator, }) => ({ entity, where, is, multiple, }) =
     }
     const queryString = `
     DELETE FROM "${translator.objToRel(entity)}"
-    WHERE ${translator.objToRel(where)} = $1
-    RETURNING *;
+    WHERE ${translator.objToRel(where)} = ?;
   `;
-    const response = yield services_1.query({
+    const result = yield refetch_1.default([is], entity, pool, translator);
+    if (result.length === 0) {
+        throw new Error(`No delete made for ${entity} where ${where} is ${is}: row does not exist.`);
+    }
+    yield services_1.query({
         params: [is],
         queryString,
         pool,
     });
-    return multiple ? services_1.format(response, translator) : services_1.format(response, translator)[0];
+    return multiple ? result : result[0];
 });
 //# sourceMappingURL=index.js.map

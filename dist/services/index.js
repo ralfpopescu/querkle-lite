@@ -24,13 +24,13 @@ const db_stringifier_1 = require("./db-stringifier");
 var query_1 = require("./query");
 Object.defineProperty(exports, "query", { enumerable: true, get: function () { return query_1.query; } });
 exports.dbStringifier = __importStar(require("./db-stringifier"));
-exports.format = (recordset, translator) => {
-    if (!recordset) {
-        throw new Error(`Operation did not return an array of values. Recordset: ${recordset}`);
+exports.format = (rows, translator) => {
+    if (!rows) {
+        throw new Error(`Operation did not return an array of values. Rows: ${rows}`);
     }
     // The TS workaround `as unknown` is needed because there's no TS snake to
     // camel conversion.
-    return recordset.rows.map(row => db_stringifier_1.format(row, translator.relToObj));
+    return rows.map(row => db_stringifier_1.format(row, translator.relToObj));
 };
 exports.stringifyGet = ({ entity, where, is, multiple, returnField, }) => `${entity}-${where}-${is}-${multiple ? 'y' : 'n'}-${returnField || 'null'}`;
 exports.parseGetString = (key) => key

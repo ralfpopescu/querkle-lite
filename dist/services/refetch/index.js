@@ -11,16 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const services_1 = require("../../services");
 const refetch = (generatedIds, entity, pool, translator) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log('CMONREFETCH');
-    const inString = `(${generatedIds.join(', ')})`;
-    console.log('inStringinString', inString);
-    const queryString = `SELECT * FROM "${translator.objToRel(entity)}" WHERE IN ${inString}`;
+    const inString = `(${generatedIds.map(() => '?').join(', ')})`;
+    const queryString = `SELECT * FROM "${translator.objToRel(entity)}" WHERE id IN ${inString};`;
     const response = yield services_1.query({
         queryString,
         pool,
-        params: null,
+        params: generatedIds,
     });
-    console.log('refetchresponse', response);
     return services_1.format(response, translator);
 });
 exports.default = refetch;

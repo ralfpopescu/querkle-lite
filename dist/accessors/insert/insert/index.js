@@ -57,7 +57,7 @@ exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(voi
         throw new Error(`${entity} insertion failed: ${e.message}`);
     }
     const generatedIds = [id];
-    console.log('WHTTHCHECK');
-    return refetch_1.default(generatedIds, entity, pool, translator)[0];
+    const refetched = yield refetch_1.default(generatedIds, entity, pool, translator);
+    return refetched[0];
 });
 //# sourceMappingURL=index.js.map

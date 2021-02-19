@@ -43,7 +43,7 @@ export declare const accessors: {
     insert: ({ pool, translator, }: Dependencies) => <T_4>({ entity, input }: {
         readonly entity: string;
         readonly input: Pick<T_4, Exclude<keyof T_4, "id" | "udpatedAt" | "createdAt">>;
-    }) => Promise<any>;
+    }) => Promise<T_4>;
     insertMany: ({ pool, translator, }: Dependencies) => <T_5>({ entity, inputArray, }: {
         readonly entity: string;
         readonly inputArray: readonly Partial<Pick<T_5, Exclude<keyof T_5, "id" | "udpatedAt" | "createdAt">>>[];
