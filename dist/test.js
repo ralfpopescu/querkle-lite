@@ -38,6 +38,8 @@ beforeAll((done) => __awaiter(void 0, void 0, void 0, function* () {
     CREATE TABLE IF NOT EXISTS zoo
     (
       id  text  NOT NULL PRIMARY KEY,
+      visited_at text,
+      json_data text,
       city text
     );
     
@@ -630,5 +632,23 @@ test('should succeed: insert many animals and return them', () => __awaiter(void
     });
     const firstAnimal = response[0];
     expect_1.default(firstAnimal.id).toBeDefined();
+}));
+test('should succeed: insert zoo with json and get json back', () => __awaiter(void 0, void 0, void 0, function* () {
+    const response = yield querkle.insert({ entity: 'zoo',
+        input: { city: 'Json City', jsonData: { myKey: 123 } } });
+    expect_1.default(response).toBeDefined();
+    if (response !== null && response !== undefined) {
+        expect_1.default(response.jsonData.myKey).toEqual(123);
+        expect_1.default(response.city).toEqual('Json City');
+    }
+}));
+test('should succeed: insert zoo with datetime and get datetime back', () => __awaiter(void 0, void 0, void 0, function* () {
+    const response = yield querkle.insert({ entity: 'zoo',
+        input: { city: 'Date City', visitedAt: new Date() } });
+    expect_1.default(response).toBeDefined();
+    if (response !== null && response !== undefined) {
+        expect_1.default(response.visitedAt).toBeInstanceOf(Date);
+        expect_1.default(response.city).toEqual('Date City');
+    }
 }));
 //# sourceMappingURL=test.js.map

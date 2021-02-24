@@ -16,6 +16,20 @@ exports.insert = void 0;
 const services_1 = require("../../../services");
 const refetch_1 = __importDefault(require("../../../services/refetch"));
 const uuid_1 = require("uuid");
+const transformInput = (input) => {
+    const newInput = Object.assign({}, input);
+    const keys = Object.keys(newInput);
+    keys.forEach(key => {
+        const value = newInput[key];
+        if (typeof value === 'object') {
+            newInput[key] = JSON.stringify(value);
+        }
+        if (value instanceof Date) {
+            newInput[key] = value.toISOString();
+        }
+    });
+    return newInput;
+};
 const createValueString = (input) => {
     const values = Object.values(input);
     return `(?, ${values.map((_) => `?`).join(', ')})`;
@@ -38,7 +52,7 @@ exports.insert = ({ pool, translator, }) => ({ entity, input }) => __awaiter(voi
     const id = uuid_1.v4();
     try {
         const response = yield services_1.query({
-            params: [id, ...Object.values(input)],
+            params: [id, ...Object.values(transformInput(input))],
             queryString,
             pool,
         });

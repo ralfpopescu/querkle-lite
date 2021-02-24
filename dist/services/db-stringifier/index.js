@@ -14,9 +14,30 @@ exports.stringifyUpdates = (updatedFields, translator) => {
     const updates = keys.map((key, i) => `${translator.objToRel(key)} = $${i + 1}`);
     return updates.join(',');
 };
+const parseValue = (value) => {
+    try {
+        const jsonParsed = JSON.parse(value);
+        if (jsonParsed && typeof jsonParsed === 'object') {
+            return jsonParsed;
+        }
+        return value;
+    }
+    catch (e) {
+    }
+    try {
+        const dateParsed = Date.parse(value);
+        if (dateParsed) {
+            return new Date(dateParsed);
+        }
+    }
+    catch (e) {
+    }
+    return value;
+};
 exports.format = (obj, relToObj) => Object
     .keys(obj)
-    .map(key => ({ [relToObj(key)]: obj[key] })).reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
+    .map(key => ({ [relToObj(key)]: parseValue(obj[key]) }))
+    .reduce((acc, curr) => (Object.assign(Object.assign({}, acc), curr)));
 exports.defaultTranslator = {
     objToRel: exports.camelToSnake,
     relToObj: exports.snakeToCamel,
