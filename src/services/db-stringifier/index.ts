@@ -23,9 +23,31 @@ export const stringifyUpdates = (updatedFields: Object, translator: Translator) 
   return updates.join(',');
 };
 
+const parseValue = (value: any) => {
+  try {
+    const jsonParsed = JSON.parse(value);
+    if(typeof jsonParsed === 'object') {
+      return jsonParsed
+    }
+    return value;
+  } catch (e) {
+    
+  }
+
+  try {
+    const dateParsed = Date.parse(value);
+    return dateParsed;
+  } catch (e) {
+    
+  }
+
+  return value;
+}
+
 export const format = <T>(obj: T, relToObj: Translator['relToObj']) => Object
   .keys(obj)
-  .map(key => ({ [relToObj(key)]: obj[key] })).reduce((acc, curr) => ({ ...acc, ...curr }));
+  .map(key => ({ [relToObj(key)]: parseValue(obj[key]) }))
+  .reduce((acc, curr) => ({ ...acc, ...curr }));
 
 export const defaultTranslator: Translator = {
   objToRel: camelToSnake,

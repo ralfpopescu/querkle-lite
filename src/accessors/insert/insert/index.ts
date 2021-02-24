@@ -4,6 +4,17 @@ import { Translator } from '../../../services/db-stringifier';
 import refetch from '../../../services/refetch';
 import { v4 as uuidv4 } from 'uuid';
 
+const transformInput = (input: Object) => {
+  const newInput = { ...input }
+  const keys = Object.keys(newInput)
+  keys.forEach(key => {
+    const value = newInput[key]
+    if(typeof value === 'object') {
+      return JSON.stringify(value)
+    }
+  })
+  return newInput
+}
 
 type InsertOptions<T> = {
   readonly entity: string;
@@ -40,7 +51,7 @@ export const insert = ({
 
   try {
     const response = await query({
-      params: [id, ...Object.values(input)],
+      params: [id, ...Object.values(transformInput(input))],
       queryString,
       pool,
     });

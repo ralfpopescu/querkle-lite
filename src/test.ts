@@ -11,9 +11,15 @@ require('iconv-lite').encodingExists('CP1252');
 
 let pool;
 
+type JsonData = {
+  myKey: number;
+}
+
 type ZooRecord = {
   readonly id: number;
   readonly city: string;
+  readonly jsonData?: JsonData;
+  readonly visitedAt?: Date;
 }
 
 type AnimalRecord = {
@@ -46,6 +52,8 @@ beforeAll(async done => {
     CREATE TABLE IF NOT EXISTS zoo
     (
       id  text  NOT NULL PRIMARY KEY,
+      visited_at text,
+      json_data text,
       city text
     );
     
@@ -691,3 +699,26 @@ test('should succeed: insert many animals and return them', async () => {
   const firstAnimal = response[0];
   expect(firstAnimal.id).toBeDefined();
 });
+
+test('should succeed: insert zoo with json and get json back', async () => {
+  const response = await querkle.insert<ZooRecord>({ entity: 'zoo', 
+  input: { city: 'Json City', jsonData: { myKey: 123 } } });
+
+  expect(response).toBeDefined();
+  if(response !== null && response !== undefined) {
+    expect(response.jsonData.myKey).toEqual(123);
+    expect(response.city).toEqual('Json City');
+  }
+})
+
+test('should succeed: insert zoo with datetime and get datetime back', async () => {
+  const response = await querkle.insert<ZooRecord>({ entity: 'zoo', 
+  input: { city: 'Date City', visitedAt: new Date() } });
+
+  expect(response).toBeDefined();
+  if(response !== null && response !== undefined) {
+    expect(response.visitedAt).toBeInstanceOf(Date);
+    expect(response.city).toEqual('Date City');
+  }
+});
+
