@@ -10,7 +10,11 @@ const transformInput = (input: Object) => {
   keys.forEach(key => {
     const value = newInput[key]
     if(typeof value === 'object') {
-      return JSON.stringify(value)
+      newInput[key] = JSON.stringify(value)
+    }
+
+    if(value instanceof Date) {
+      newInput[key] = value.toISOString()
     }
   })
   return newInput

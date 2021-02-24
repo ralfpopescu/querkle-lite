@@ -26,19 +26,19 @@ export const stringifyUpdates = (updatedFields: Object, translator: Translator) 
 const parseValue = (value: any) => {
   try {
     const jsonParsed = JSON.parse(value);
-    if(typeof jsonParsed === 'object') {
+    if(jsonParsed && typeof jsonParsed === 'object') {
       return jsonParsed
     }
     return value;
   } catch (e) {
-    
   }
 
   try {
     const dateParsed = Date.parse(value);
-    return dateParsed;
+    if(dateParsed) {
+      return new Date(dateParsed);
+    }
   } catch (e) {
-    
   }
 
   return value;

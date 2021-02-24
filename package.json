@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prepare-test-db": "node src/test-setup/setup.js",
-    "test": "eslint --fix . && ./scripts/test.sh",
+    "test": "eslint . && madge -c . && jest",
     "test-cmd": "eslint . && madge -c . && jest",
     "build": "rm -rf ./dist/* && tsc",
     "start-db": "docker-compose -f ./docker/compose/docker-compose.start-db.yml down && docker-compose -f ./docker/compose/docker-compose.start-db.yml -p querkle up",

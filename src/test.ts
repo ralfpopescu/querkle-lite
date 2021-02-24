@@ -705,6 +705,7 @@ test('should succeed: insert zoo with json and get json back', async () => {
   input: { city: 'Json City', jsonData: { myKey: 123 } } });
 
   expect(response).toBeDefined();
+
   if(response !== null && response !== undefined) {
     expect(response.jsonData.myKey).toEqual(123);
     expect(response.city).toEqual('Json City');
