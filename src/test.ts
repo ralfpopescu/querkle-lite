@@ -159,6 +159,14 @@ test('should succeed: update zoo', async () => {
   expect(response.city).toEqual('Boston');
 });
 
+test('should succeed: update zoo by city', async () => {
+  const response = await querkle.update<ZooRecord>({
+    entity: 'zoo', input: { visitedAt: new Date() }, where: 'city', is: 'Boston',
+  });
+
+  expect(response.visitedAt).toBeTruthy();
+});
+
 test('should succeed: insert animal referencing zoo', async () => {
   const response = await querkle.insert<AnimalRecord>({
     entity: 'animal',

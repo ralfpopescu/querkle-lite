@@ -1,7 +1,7 @@
 import { format, query } from '../../services';
 import { Dependencies, ExcludeGeneratedColumns, IsValue, StringKeys } from '../index';
 import { Translator } from '../../services/db-stringifier';
-import refetch from '../../services/refetch';
+import refetch from '../../services/refetch-alt';
 
 type BaseOptions<T> = {
   readonly entity: string;
@@ -65,7 +65,7 @@ export const update = ({
     pool,
   });
 
-  const result = await refetch<T>([is], entity, pool, translator)
+  const result = await refetch<T>([is], entity, where, pool, translator)
 
   if(result.length === 0) {
     throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
