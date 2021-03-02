@@ -126,6 +126,12 @@ test('should succeed: update zoo', () => __awaiter(void 0, void 0, void 0, funct
     });
     expect_1.default(response.city).toEqual('Boston');
 }));
+test('should succeed: update zoo by city', () => __awaiter(void 0, void 0, void 0, function* () {
+    const response = yield querkle.update({
+        entity: 'zoo', input: { visitedAt: new Date() }, where: 'city', is: 'Boston',
+    });
+    expect_1.default(response.visitedAt).toBeTruthy();
+}));
 test('should succeed: insert animal referencing zoo', () => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield querkle.insert({
         entity: 'animal',

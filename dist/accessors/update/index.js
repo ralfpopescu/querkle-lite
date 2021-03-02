@@ -14,7 +14,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.update = void 0;
 const services_1 = require("../../services");
-const refetch_1 = __importDefault(require("../../services/refetch"));
+const refetch_alt_1 = __importDefault(require("../../services/refetch-alt"));
 const stringifyUpdates = (updatedFields, translator) => {
     const keys = Object.keys(updatedFields);
     const updates = keys.map((key, i) => `${translator.objToRel(key)} = ?`);
@@ -41,7 +41,7 @@ exports.update = ({ pool, translator, }) => ({ entity, input, where, is, multipl
         queryString,
         pool,
     });
-    const result = yield refetch_1.default([is], entity, pool, translator);
+    const result = yield refetch_alt_1.default([is], entity, where, pool, translator);
     if (result.length === 0) {
         throw new Error(`No update made for ${entity} where ${where} is ${is}: row does not exist.`);
     }
